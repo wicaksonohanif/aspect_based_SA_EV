@@ -1,0 +1,8 @@
+# Daftar Tautan Video YouTube / ID Video EV China di Indonesia
+# Masukkan satu link/ID per baris. Baris yang diawali '#' akan diabaikan.
+# Contoh format yang didukung:
+# https://www.youtube.com/watch?v=dQw4w9WgXcQ
+# https://youtu.be/dQw4w9WgXcQ
+# https://www.youtube.com/shorts/dQw4w9WgXcQ
+# dQw4w9WgXcQ
+

@@ -1,0 +1,9 @@
+# Environment variables
+.env
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Local data (prevent uploading raw extracted data if sensitive/large)
+# data/raw/
