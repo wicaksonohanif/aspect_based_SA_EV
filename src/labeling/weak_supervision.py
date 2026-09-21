@@ -5,6 +5,7 @@ Spec Compliance: specs/02_preprocessing_labeling.spec.md
 
 import logging
 import os
+import re
 import time
 from datetime import datetime
 from pathlib import Path
@@ -22,16 +23,43 @@ logging.basicConfig(
 logger = logging.getLogger("WeakSupervisionEngine")
 
 
-# Kamus Aturan Kata Kunci Lokal (Rule-Based Stage)
+# Kamus Aturan Kata Kunci Lokal yang Diperluas (Rule-Based Stage)
 ASPECT_KEYWORDS = {
-    "infra": ["spklu", "charging", "cas", "ngecas", "isi daya", "pln", "jarak tempuh", "baterai habis", "stasiun pengisian"],
-    "ekonomi": ["harga", "murah", "mahal", "bekas", "mobkas", "depresiasi", "resale", "pajak", "irit", "boncos", "garansi"],
-    "kualitas": ["baterai", "blade", "lfp", "suspensi", "build quality", "interior", "fitur", "adas", "rem", "rusak", "awet", "nyaman"],
-    "purnajual": ["dealer", "bengkel", "sparepart", "suku cadang", "indent", "sales", "layanan", "servis", "service"],
+    "infra": [
+        "spklu", "charging", "cas", "ngecas", "isi daya", "pln", "jarak tempuh", 
+        "baterai habis", "stasiun pengisian", "kabel cas", "charger", "daya jelajah"
+    ],
+    "ekonomi": [
+        "harga", "murah", "mahal", "bekas", "mobkas", "depresiasi", "resale", 
+        "pajak", "irit", "boncos", "garansi", "biaya", "rupiah", "juta", "jutaan", 
+        "efisiensi", "bayar", "diskon", "subsidi", "cash"
+    ],
+    "kualitas": [
+        "baterai", "blade", "lfp", "suspensi", "build quality", "interior", "eksterior", 
+        "fitur", "adas", "rem", "rusak", "awet", "nyaman", "ganteng", "keren", "desain", 
+        "design", "model", "kualitas", "performa", "mesin", "motor", "ac", "layar", 
+        "audio", "steer", "tampilan", "bentuk", "canggih"
+    ],
+    "purnajual": [
+        "dealer", "bengkel", "sparepart", "suku cadang", "indent", "sales", "layanan", 
+        "servis", "service", "resmi", "part", "garansi", "onderdil"
+    ],
 }
 
-POSITIVE_WORDS = ["bagus", "keren", "mantap", "awet", "irit", "murah", "layak", "worth", "suka", "puas", "nyaman", "rekomended", "gacor"]
-NEGATIVE_WORDS = ["rusak", "jelek", "mahal", "boncos", "rugi", "kecewa", "lambat", "susah", "parah", "riwet", "kacau", "batal"]
+POSITIVE_WORDS = [
+    "bagus", "keren", "mantap", "awet", "irit", "murah", "layak", "worth", "suka", 
+    "puas", "nyaman", "rekomended", "gacor", "ganteng", "mewah", "lengkap", "canggih", 
+    "terbaik", "juara", "top", "sangat", "jos"
+]
+
+# Kata negasi dan kata negatif spesifik (seperti 'murahan', 'kurang nyaman')
+NEGATION_WORDS = ["tidak", "tak", "gak", "ga", "gk", "kurang", "bukan"]
+
+EXPLICIT_NEGATIVE_WORDS = [
+    "rusak", "jelek", "mahal", "boncos", "rugi", "kecewa", "lambat", "susah", "parah", 
+    "riwet", "kacau", "batal", "cacat", "buruk", "ringkih", "lemot", "gagal", "kapok",
+    "murahan", "kurang nyaman", "tidak nyaman", "kurang bagus", "tidak bagus", "ga bagus"
+]
 
 
 class WeakSupervisionEngine:
@@ -53,7 +81,7 @@ class WeakSupervisionEngine:
 
     def _rule_based_check(self, text: str) -> tuple[dict[str, str | None], bool]:
         """
-        Pemeriksaan aturan lokal berbasis kata kunci.
+        Pemeriksaan aturan lokal berbasis kata kunci & negasi.
         Returns: (labels_dict, is_ambiguous)
         """
         text_lower = text.lower()
@@ -70,20 +98,31 @@ class WeakSupervisionEngine:
         for aspect, keywords in ASPECT_KEYWORDS.items():
             if any(kw in text_lower for kw in keywords):
                 matched_aspects += 1
-                pos_match = any(pw in text_lower for pw in POSITIVE_WORDS)
-                neg_match = any(nw in text_lower for nw in NEGATIVE_WORDS)
 
-                if pos_match and not neg_match:
+                # Cek kata negatif eksplisit atau negasi
+                neg_match = any(nw in text_lower for nw in EXPLICIT_NEGATIVE_WORDS)
+                if not neg_match:
+                    # Cek kombinasi kata negasi + positif (contoh: "kurang nyaman", "ga bagus")
+                    for neg in NEGATION_WORDS:
+                        for pos in POSITIVE_WORDS:
+                            if f"{neg} {pos}" in text_lower or f"{neg}nya {pos}" in text_lower:
+                                neg_match = True
+                                break
+                        if neg_match:
+                            break
+
+                pos_match = any(pw in text_lower for pw in POSITIVE_WORDS) and not neg_match
+
+                if pos_match:
                     labels[f"{aspect}_sentiment"] = "Positif"
                     has_clear_polarity = True
-                elif neg_match and not pos_match:
+                elif neg_match:
                     labels[f"{aspect}_sentiment"] = "Negatif"
                     has_clear_polarity = True
-                elif not pos_match and not neg_match:
+                else:
                     labels[f"{aspect}_sentiment"] = "Netral"
                     has_clear_polarity = True
 
-        # Komentar dianggap ambigu jika tidak ada kata kunci aspek yang cocok, atau polaritas bertolak belakang
         is_ambiguous = (matched_aspects == 0) or (not has_clear_polarity)
         return labels, is_ambiguous
 
@@ -99,7 +138,6 @@ class WeakSupervisionEngine:
             labels["label_source"] = "Rule-Based"
             return labels
 
-        # Fallback ke Gemini API jika ambigu
         if self.use_gemini and self.gemini_labeler:
             gemini_labels = self.gemini_labeler.label_comment(text)
             gemini_labels["label_source"] = "Gemini-API"
@@ -145,6 +183,7 @@ class WeakSupervisionEngine:
                 rule_count += 1
             else:
                 gemini_count += 1
+                time.sleep(4.0)
 
             record = row.to_dict()
             record.update(labeled_data)
@@ -152,10 +191,6 @@ class WeakSupervisionEngine:
 
             if (idx + 1) % 50 == 0 or (idx + 1) == len(df):
                 logger.info(f"Progress Pelabelan: [{idx + 1}/{len(df)}] (Rule-Based: {rule_count}, Gemini API: {gemini_count})")
-            
-            # Delay singkat jika memanggil Gemini API
-            if labeled_data.get("label_source") == "Gemini-API":
-                time.sleep(0.2)
 
         out_df = pd.DataFrame(results)
 
@@ -174,5 +209,5 @@ class WeakSupervisionEngine:
 
 if __name__ == "__main__":
     engine = WeakSupervisionEngine(use_gemini=False)
-    sample_text = "spklu di tol sedikit banget, tapi batrenya awet"
+    sample_text = "desainnya murah dan kurang nyaman"
     print("Test Sample:", engine.label_single_text(sample_text))

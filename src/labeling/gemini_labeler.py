@@ -6,6 +6,7 @@ Spec Compliance: specs/02_preprocessing_labeling.spec.md
 import json
 import logging
 import os
+import time
 from typing import Any
 
 from dotenv import load_dotenv
@@ -21,8 +22,8 @@ class GeminiAspectLabeler:
     menggunakan Structured JSON Response Mode.
     """
 
-    def __init__(self, api_key: str | None = None, model_name: str = "gemini-1.5-flash"):
-        """Inisialisasi Gemini API Client."""
+    def __init__(self, api_key: str | None = None, model_name: str = "gemini-flash-latest"):
+        """Inisialisasi Gemini API Client (default model: gemini-flash-latest)."""
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
         if not self.api_key or self.api_key == "YOUR_GEMINI_API_KEY_HERE":
             raise ValueError(
@@ -49,17 +50,9 @@ class GeminiAspectLabeler:
                 "Silakan jalankan: pip install -r requirements.txt"
             )
 
-    def label_comment(self, text: str) -> dict[str, str | None]:
+    def label_comment(self, text: str, max_retries: int = 3) -> dict[str, str | None]:
         """
-        Mengirimkan komentar ke Gemini API dan mengembalikan dictionary aspek & sentimen.
-
-        Returns:
-            {
-                "infra_sentiment": "Positif" | "Netral" | "Negatif" | None,
-                "ekonomi_sentiment": "Positif" | "Netral" | "Negatif" | None,
-                "kualitas_sentiment": "Positif" | "Netral" | "Negatif" | None,
-                "purnajual_sentiment": "Positif" | "Netral" | "Negatif" | None
-            }
+        Mengirimkan komentar ke Gemini API dengan retry backoff jika terkena rate limit 429.
         """
         prompt = f"""
         Kamu adalah pakar Aspect-Based Sentiment Analysis (ABSA) otomotif Indonesia.
@@ -80,22 +73,30 @@ class GeminiAspectLabeler:
         }}
         """
 
-        try:
-            response = self.model.generate_content(prompt)
-            result = json.loads(response.text)
-            
-            # Normalisasi key & values
-            return {
-                "infra_sentiment": result.get("infra_sentiment"),
-                "ekonomi_sentiment": result.get("ekonomi_sentiment"),
-                "kualitas_sentiment": result.get("kualitas_sentiment"),
-                "purnajual_sentiment": result.get("purnajual_sentiment"),
-            }
-        except Exception as e:
-            logger.error(f"Gagal mendapatkan respon Gemini API untuk teks: '{text[:30]}...': {e}")
-            return {
-                "infra_sentiment": None,
-                "ekonomi_sentiment": None,
-                "kualitas_sentiment": None,
-                "purnajual_sentiment": None,
-            }
+        for attempt in range(1, max_retries + 1):
+            try:
+                response = self.model.generate_content(prompt)
+                result = json.loads(response.text)
+
+                return {
+                    "infra_sentiment": result.get("infra_sentiment"),
+                    "ekonomi_sentiment": result.get("ekonomi_sentiment"),
+                    "kualitas_sentiment": result.get("kualitas_sentiment"),
+                    "purnajual_sentiment": result.get("purnajual_sentiment"),
+                }
+            except Exception as e:
+                err_str = str(e)
+                if "429" in err_str or "quota" in err_str.lower():
+                    sleep_time = 4 * attempt
+                    logger.warning(f"Rate Limit 429 pada percobann {attempt}/{max_retries}. Menunggu {sleep_time} detik...")
+                    time.sleep(sleep_time)
+                else:
+                    logger.error(f"Error Gemini API pada percobaan {attempt}/{max_retries}: {e}")
+                    time.sleep(1)
+
+        return {
+            "infra_sentiment": None,
+            "ekonomi_sentiment": None,
+            "kualitas_sentiment": None,
+            "purnajual_sentiment": None,
+        }
