@@ -200,11 +200,22 @@ print(f"Statistik Panjang Karakter: Mean = {df_valid['char_length'].mean():.1f} 
 """))
 
     # Cell 7: Graph 5 - WordClouds per Aspect
-    cells.append(nbf.v4.new_code_cell("""# 5. Visualisasi WordCloud Kata Kunci per Aspek
+    cells.append(nbf.v4.new_code_cell("""# 5. Visualisasi WordCloud Kata Kunci per Aspek (Filtered Stopwords untuk Visualisasi)
+# Daftar Stopwords khusus visualisasi (TIDAK mengubah dataset asli)
+VISUALIZATION_STOPWORDS = set([
+    'yang', 'yg', 'nya', 'di', 'ke', 'dan', 'ini', 'itu', 'ada', 'sudah', 'bisa', 'banyak', 
+    'lagi', 'sama', 'kalau', 'kalo', 'akan', 'jadi', 'bikin', 'dari', 'pada', 'buat', 'saja', 
+    'aja', 'atau', 'dengan', 'untuk', 'lah', 'pun', 'kan', 'kah', 'deh', 'dong', 'kok', 'juga', 
+    'masih', 'belum', 'harus', 'gak', 'ga', 'ngga', 'nggak', 'tidak', 'tak', 'gk', 'apa', 'tapi', 
+    'tetap', 'biar', 'pakai', 'pake', 'mau', 'orang', 'sih', 'lu', 'gue', 'gw', 
+    'gua', 'dia', 'mereka', 'kita', 'kamu', 'anda', 'saya', 'aku', 'sy', 'om', 'bang', 'min', 
+    'bro', 'bos', 'gan', 'sist', 'kak', 'bapak', 'ibu', 'pak', 'bu', 'terus', 
+    'seperti', 'karena', 'sampai', 'jika', 'bila', 'semua', 'hal', 'bahkan', 'secara', 'malah', 
+    'sebab', 'oleh', 'serta', 'tersebut', 'tentang', 'bahwa', 'apabila', 'kalau'
+])
+
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 axes = axes.flatten()
-
-bg_colors = ['#f8f9fa', '#fff5f5', '#f0fff4', '#f0f8ff']
 
 for idx, (col, name) in enumerate(aspect_names.items()):
     aspect_texts = df_valid[df_valid[col].notnull()]['text_cleaned'].astype(str)
@@ -215,7 +226,8 @@ for idx, (col, name) in enumerate(aspect_names.items()):
         background_color='white',
         colormap='Dark2',
         max_words=80,
-        collocations=False
+        collocations=False,
+        stopwords=VISUALIZATION_STOPWORDS
     ).generate(combined_text)
     
     axes[idx].imshow(wordcloud, interpolation='bilinear')
