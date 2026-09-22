@@ -41,6 +41,7 @@
 | `brief/project_state.md` | Updated | Snapshot Sesi 5 (22 Sep 2026 - Gold Standard Complete) |
 | `specs/01_data_extraction.spec.md` | Approved | Data Extraction Spec |
 | `specs/02_preprocessing_labeling.spec.md` | Approved | Preprocessing & Gemini API Hybrid Spec |
+| `specs/03_model_training.spec.md` | Approved | Model Training Spec (IndoRoBERTa vs SahabatAI Discriminative Classifiers) |
 | `data/raw/yt_comments_all_combined.csv` | Completed | 3.016 Unique Raw Comments |
 | `data/interim/cleaned_comments_all.csv` | Completed | 3.016 Cleaned Comments |
 | `data/interim/auto_labeled_comments_all.csv` | Completed | 3.016 Auto-Labeled Comments |
