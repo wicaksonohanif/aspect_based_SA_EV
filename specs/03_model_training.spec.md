@@ -1,8 +1,8 @@
 # SPEC-03: Model Training & Evaluation (IndoRoBERTa-base 110M vs. XLM-RoBERTa-large 550M)
 
 - **Spec ID:** SPEC-03
-- **Title:** Phase 3 — Multi-Aspect Sentiment Analysis Comparative Training & Evaluation (Discriminative Encoder Benchmark)
-- **Status:** Approved / Finalized Specification (v3 - XLM-RoBERTa Large Benchmark)
+- **Title:** Phase 3 — Multi-Aspect Sentiment Analysis Comparative Training & Evaluation (Discriminative Encoder Benchmark & Optimization Strategy)
+- **Status:** Approved / Finalized Specification (v4 - Customized Thresholds & Augmentation Strategy)
 - **Author:** Antigravity AI & Wicaksono Hanif
 - **Target Models:** IndoRoBERTa Classifier (110M Monolingual) vs. XLM-RoBERTa-large Classifier (550M Multilingual)
 - **Execution Environment:** Kaggle Notebooks (NVIDIA T4 GPU 16GB VRAM, $0 Cost)
@@ -42,9 +42,50 @@ Setiap komentar teks diuji secara serentak terhadap **4 Aspek Otomotif EV**:
 ## 3. Strategi Pelatihan & Penanganan Class Imbalance
 
 ### 3.1 Penanganan Ketimpangan Kelas Mayoritas `None`
-- **Focal Loss ($\gamma = 1.5$):** Menggunakan Multi-Aspect Focal Loss untuk menekan loss dari sampel mayoritas `None` dan menfokuskan pembaruan bobot gradien pada kelas sentimen aktif (`positif`, `netral`, `negatif`).
-- **Smoothed Class Weights:** Menggunakan pemangkasan akar kuadrat dari *balanced weights* ($\sqrt{w}$) untuk menyeimbangkan penalti tanpa menyebabkan *gradient spike*.
-- **Decision Thresholding ($\theta_{\text{none}} = 0.50$):** Menggunakan ambang batas probabilitas $P(\text{None}) > 0.50$ sebelum memutuskan kelas `None`. Jika probabilitas `None` $\le 0.50$, model dipaksa memilih kelas sentimen aktif tertinggi dari `[positif, netral, negatif]`.
+- **Focal Loss ($\gamma = 1.5$):** Menggunakan Multi-Aspect Focal Loss untuk menekan loss dari sampel mayoritas `None` hingga 95% dan memfokuskan pembaruan bobot gradien pada kelas sentimen aktif (`positif`, `netral`, `negatif`).
+- **Smoothed Class Weights ($\sqrt{w}$):** Menggunakan akar kuadrat dari *balanced weights* untuk menyeimbangkan penalti tanpa menyebabkan *gradient spike*.
+
+---
+
+### 3.2 Decision Thresholding Terpisah per Aspek ($\theta_{\text{aspect}}$)
+Berdasarkan hasil analisis confusion matrix iterasi 01 (di mana aspek `purnajual` dan `infra` memiliki tingkat kelangkaan tinggi >85% `None`), ambang batas keputusan $P(\text{None})$ diatur secara dinamis per aspek untuk meningkatkan sensitivitas deteksi kelas aktif:
+
+- **Aspek `purnajual`:** $\theta_{\text{purnajual}} = 0.35$ (Meningkatkan sensitivitas deteksi sentimen purnajual yang langka)
+- **Aspek `infra`:** $\theta_{\text{infra}} = 0.40$
+- **Aspek `ekonomi`:** $\theta_{\text{ekonomi}} = 0.50$
+- **Aspek `kualitas`:** $\theta_{\text{kualitas}} = 0.50$
+
+---
+
+### 3.3 Pembobotan Target Gradien Khusus (*Targeted Class Alpha*)
+Untuk mengatasi masalah nol prediksi pada kelas `purnajual positif` (yang hanya memiliki 14 data latih), faktor pengali $\alpha$ pada Focal Loss disesuaikan secara khusus:
+- $\alpha_{\text{purnajual, positif}} = 2.5 \times \alpha_{\text{default}}$
+- $\alpha_{\text{infra, positif}} = 1.8 \times \alpha_{\text{default}}$
+
+---
+
+### 3.4 Strategi & Contoh Augmentasi Data Teks Kelas Minoritas
+
+Untuk menambah variasi sintaksis dan memperkuat daya generatisasi model pada kelas ekstrem minoritas (`purnajual positif` dan `infra positif`) di data latih, diterapkan **Strategi Augmentasi Teks Kontekstual & Substitusi Sinonim (Synonym Replacement & Context-Preserving Paraphrasing)**.
+
+> [!NOTE] 
+> Augmentasi data **hanya diterapkan pada Train Set (667 data)**. Validation Set (287 data) **tetap 100% murni data manusia asli** tanpa augmentasi untuk menjamin validitas ilmiah evaluasi.
+
+#### 📌 Contoh Augmentasi 1: Aspek `purnajual` (Sentimen: `positif`)
+- **Teks Asli (Ground Truth):**
+  > *"Pelayanan dealer BYD sangat memuaskan, klaim garansi baterai cepat dan tidak berbelit-belit."*
+- **Variasi Augmentasi 1 (Substitusi Sinonim Otomotif):**
+  > *"Servis dealer BYD sangat ramah, proses klaim garansi baterai cepat dan gampang banget."*
+- **Variasi Augmentasi 2 (Parafrase Kontekstual):**
+  > *"Layanan purnajual dealer BYD mantap sekali, klaim garansi baterainya cepat tanpa ribet."*
+
+#### 📌 Contoh Augmentasi 2: Aspek `infra` (Sentimen: `positif`)
+- **Teks Asli (Ground Truth):**
+  > *"SPKLU di rest area tol Cipularang sudah banyak dan pengisian ultra fast charging cepat sekali."*
+- **Variasi Augmentasi 1 (Substitusi Sinonim & Istilah Cas):**
+  > *"Stasiun cas SPKLU rest area tol Cipularang makin melimpah dan ngecas daya fast charging kilat banget."*
+- **Variasi Augmentasi 2 (Parafrase Kontekstual):**
+  > *"Tempat ngecas SPKLU di jalan tol sudah tersebar banyak dan pengisian baterainya cepat sekali."*
 
 ---
 

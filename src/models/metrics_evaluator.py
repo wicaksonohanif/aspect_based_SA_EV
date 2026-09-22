@@ -1,5 +1,5 @@
 """
-Metrics Evaluator & Confusion Matrix Visualization Module for ABSA
+Metrics Evaluator & Confusion Matrix Visualization Module for ABSA (v4 - Aspect-Customized Thresholds)
 Spec Compliance: specs/03_model_training.spec.md
 Computes Accuracy, Precision, Recall, Macro/Weighted F1 (All-Class & Active-Sentiment), Exact Match Ratio,
 Smoothed Class Weights, and 4x4 Confusion Matrices per aspect.
@@ -18,6 +18,14 @@ ID2LABEL = {0: 'None', 1: 'positif', 2: 'netral', 3: 'negatif'}
 ASPECTS = ['infra', 'ekonomi', 'kualitas', 'purnajual']
 CLASS_NAMES = ['None', 'Positif', 'Netral', 'Negatif']
 
+# Customized aspect decision thresholds based on aspect frequency
+ASPECT_THRESHOLDS = {
+    "infra": 0.40,
+    "ekonomi": 0.50,
+    "kualitas": 0.50,
+    "purnajual": 0.35,
+}
+
 
 def compute_aspect_class_weights(
     df: pd.DataFrame,
@@ -25,8 +33,8 @@ def compute_aspect_class_weights(
     smooth_factor: float = 0.5,
 ) -> dict[str, torch.Tensor]:
     """
-    Menghitung smoothed loss class weights (akar kuadrat dari balanced weights)
-    untuk mencegah gradient spike berlebih pada kelas minoritas.
+    Menghitung smoothed loss class weights dengan penyesuaian ekstra (targeted alpha)
+    untuk kelas minoritas ekstrem seperti purnajual positif dan infra positif.
     """
     weights_dict = {}
     classes = np.array([0, 1, 2, 3])
@@ -40,21 +48,37 @@ def compute_aspect_class_weights(
         raw_vals = df[col].fillna("none").astype(str).str.lower().map(LABEL2ID).fillna(0).astype(int).values
         raw_weights = compute_class_weight(class_weight="balanced", classes=classes, y=raw_vals)
 
-        # Smooth weights via power scaling (sqrt) and normalize mean to 1.0
+        # Smooth weights via power scaling (sqrt)
         smoothed = np.power(raw_weights, smooth_factor)
-        smoothed = smoothed / np.mean(smoothed)
 
+        # Apply targeted alpha boost for extreme minority classes
+        if aspect == "purnajual":
+            smoothed[1] *= 2.5  # positif purnajual boost
+            smoothed[2] *= 1.5  # netral purnajual boost
+        elif aspect == "infra":
+            smoothed[1] *= 1.8  # positif infra boost
+
+        smoothed = smoothed / np.mean(smoothed)
         weights_dict[aspect] = torch.tensor(smoothed, dtype=torch.float32)
 
     return weights_dict
 
 
-def predict_with_threshold(logits: torch.Tensor | np.ndarray, none_threshold: float = 0.50) -> np.ndarray:
+def predict_with_threshold(
+    logits: torch.Tensor | np.ndarray,
+    none_threshold: float | dict[str, float] = ASPECT_THRESHOLDS,
+    aspect: str | None = None,
+) -> np.ndarray:
     """
-    Prediksi label menggunakan Decision Thresholding untuk kelas 'None' (index 0).
-    Jika P(None) > none_threshold, maka diprediksi 'None' (0).
-    Jika P(None) <= none_threshold, maka diprediksi argmax dari kelas sentimen aktif [1: positif, 2: netral, 3: negatif].
+    Prediksi label menggunakan Aspect-Customized Decision Thresholding untuk kelas 'None' (index 0).
     """
+    if isinstance(none_threshold, dict) and aspect in none_threshold:
+        thresh = none_threshold[aspect]
+    elif isinstance(none_threshold, (int, float)):
+        thresh = float(none_threshold)
+    else:
+        thresh = 0.50
+
     if isinstance(logits, torch.Tensor):
         probs = torch.softmax(logits, dim=-1).detach().cpu().numpy()
     else:
@@ -64,7 +88,7 @@ def predict_with_threshold(logits: torch.Tensor | np.ndarray, none_threshold: fl
     preds = []
     for i in range(probs.shape[0]):
         p_none = probs[i, 0]
-        if p_none > none_threshold:
+        if p_none > thresh:
             preds.append(0)
         else:
             active_probs = probs[i, 1:]  # index 1, 2, 3
@@ -81,7 +105,6 @@ def evaluate_predictions(
 ) -> dict:
     """
     Mengevaluasi hasil prediksi terhadap ground truth secara multi-aspek.
-    Menghitung metrik All-Class (termasuk None) dan Active-Sentiment (hanya Positif, Netral, Negatif).
     """
     aspect_metrics = {}
     cm_dict = {}
@@ -95,12 +118,12 @@ def evaluate_predictions(
 
         acc = accuracy_score(y_true, y_pred)
         
-        # All-Class Metrics (Classes 0, 1, 2, 3)
+        # All-Class Metrics (0, 1, 2, 3)
         prec_m_all = precision_score(y_true, y_pred, average="macro", zero_division=0)
         rec_m_all = recall_score(y_true, y_pred, average="macro", zero_division=0)
         f1_m_all = f1_score(y_true, y_pred, average="macro", zero_division=0)
 
-        # Active-Sentiment Metrics (Classes 1, 2, 3)
+        # Active-Sentiment Metrics (1, 2, 3)
         prec_m_active = precision_score(y_true, y_pred, labels=[1, 2, 3], average="macro", zero_division=0)
         rec_m_active = recall_score(y_true, y_pred, labels=[1, 2, 3], average="macro", zero_division=0)
         f1_m_active = f1_score(y_true, y_pred, labels=[1, 2, 3], average="macro", zero_division=0)
@@ -122,7 +145,6 @@ def evaluate_predictions(
         macro_f1s_all.append(f1_m_all)
         macro_f1s_active.append(f1_m_active)
 
-    # Calculate Exact Match Ratio (Subset Accuracy)
     n_samples = len(y_true_dict[aspects[0]])
     exact_matches = 0
     for i in range(n_samples):
@@ -151,9 +173,6 @@ def plot_confusion_matrices(
     save_path: str = "confusion_matrices.png",
     aspects: list[str] = ASPECTS,
 ) -> str:
-    """
-    Visualisasi Grid 2x2 Heatmap Confusion Matrix 4x4.
-    """
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     fig.suptitle(f"Confusion Matrices 4x4 — {model_name}", fontsize=16, fontweight="bold", y=0.98)
 
@@ -182,4 +201,4 @@ def plot_confusion_matrices(
 
 
 if __name__ == "__main__":
-    print("Metrics Evaluator module updated successfully!")
+    print("Metrics Evaluator v4 initialized successfully!")
