@@ -1,12 +1,13 @@
 """
 SahabatAI-8B Multi-Head Classifier with QLoRA for ABSA (Discriminative LLM Mode)
 Spec Compliance: specs/03_model_training.spec.md
-Model Backbone: SahabatAI/SahabatAI-Instruct-8B (8B Parameter Decoder)
+Model Backbone: Sahabat-AI/SahabatAI-Instruct-8B (8B Parameter Decoder)
 Quantization & Fine-Tuning: 4-bit NF4 QLoRA Partial Fine-Tuning
 """
 
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 from transformers import AutoModel, AutoTokenizer, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 
@@ -15,16 +16,39 @@ ID2LABEL = {0: 'None', 1: 'positif', 2: 'netral', 3: 'negatif'}
 ASPECTS = ['infra', 'ekonomi', 'kualitas', 'purnajual']
 
 
+class FocalLoss(nn.Module):
+    """
+    Multi-Class Focal Loss untuk menekan loss dari sampel mayoritas (None).
+    """
+    def __init__(self, alpha: torch.Tensor | None = None, gamma: float = 2.0):
+        super().__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+
+    def forward(self, inputs: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        probs = F.softmax(inputs, dim=-1)
+        pt = probs.gather(1, targets.unsqueeze(1)).squeeze(1)
+        pt = torch.clamp(pt, min=1e-8, max=1.0)
+        
+        focal_weight = (1.0 - pt) ** self.gamma
+        if self.alpha is not None:
+            alpha_weight = self.alpha.to(inputs.device)[targets]
+            focal_weight = focal_weight * alpha_weight
+
+        loss = -focal_weight * torch.log(pt)
+        return loss.mean()
+
+
 class SahabatAIMultiHeadClassifier(nn.Module):
     """
     SahabatAI-8B Multi-Head Classifier (Discriminative Mode) untuk ABSA.
-    Menggunakan LLM Decoder 8B yang di-quantize ke 4-bit NF4 dan di-fine-tune via QLoRA.
-    Extrak hidden state dari token terakhir untuk diklasifikasikan oleh 4 Classification Head terpisah.
+    Menggunakan LLM Decoder 8B (Sahabat-AI/SahabatAI-Instruct-8B) 4-bit NF4 QLoRA.
+    Extrak hidden state token terakhir + GELU MLP classification head.
     """
 
     def __init__(
         self,
-        model_name: str = "SahabatAI/SahabatAI-Instruct-8B",
+        model_name: str = "Sahabat-AI/SahabatAI-Instruct-8B",
         num_classes: int = 4,
         dropout_prob: float = 0.1,
         aspects: list[str] | None = None,
@@ -33,11 +57,13 @@ class SahabatAIMultiHeadClassifier(nn.Module):
         lora_r: int = 16,
         lora_alpha: int = 32,
         lora_dropout: float = 0.05,
+        focal_gamma: float = 2.0,
     ):
         super().__init__()
         self.model_name = model_name
         self.aspects = aspects if aspects is not None else ASPECTS
         self.num_classes = num_classes
+        self.focal_gamma = focal_gamma
 
         # Quantization Config (4-bit NF4 for Kaggle T4 GPU 16GB VRAM)
         if load_in_4bit:
@@ -50,14 +76,25 @@ class SahabatAIMultiHeadClassifier(nn.Module):
         else:
             bnb_config = None
 
-        # Load Base AutoModel (Hidden states output)
-        self.backbone = AutoModel.from_pretrained(
-            model_name,
-            quantization_config=bnb_config,
-            device_map="auto",
-            trust_remote_code=True,
-            torch_dtype=torch.float16,
-        )
+        # Try loading model with fallback options if HF identifier differs
+        try:
+            self.backbone = AutoModel.from_pretrained(
+                model_name,
+                quantization_config=bnb_config,
+                device_map="auto",
+                trust_remote_code=True,
+                torch_dtype=torch.float16,
+            )
+        except Exception as e:
+            fallback_name = "GoToCompany/llama3-8b-cpt-sahabatai-v1-instruct"
+            print(f"⚠️ Warning: Failed to load '{model_name}'. Trying fallback '{fallback_name}'... Error: {e}")
+            self.backbone = AutoModel.from_pretrained(
+                fallback_name,
+                quantization_config=bnb_config,
+                device_map="auto",
+                trust_remote_code=True,
+                torch_dtype=torch.float16,
+            )
 
         hidden_size = self.backbone.config.hidden_size
 
@@ -75,11 +112,13 @@ class SahabatAIMultiHeadClassifier(nn.Module):
             )
             self.backbone = get_peft_model(self.backbone, peft_config)
 
-        # 4 Multi-Task Classification Heads
+        # 4 Multi-Task GELU MLP Classification Heads
         self.heads = nn.ModuleDict({
             aspect: nn.Sequential(
+                nn.Linear(hidden_size, 256),
+                nn.GELU(),
                 nn.Dropout(dropout_prob),
-                nn.Linear(hidden_size, num_classes)
+                nn.Linear(256, num_classes)
             )
             for aspect in self.aspects
         })
@@ -92,24 +131,21 @@ class SahabatAIMultiHeadClassifier(nn.Module):
         class_weights: dict[str, torch.Tensor] | None = None,
     ) -> dict[str, torch.Tensor]:
         """
-        Forward pass melalui SahabatAI-8B backbone dan 4 classification heads.
-        Mengambil hidden state token terakhir (last non-padded token).
+        Forward pass melalui SahabatAI-8B backbone dan 4 MLP classification heads.
         """
         outputs = self.backbone(input_ids=input_ids, attention_mask=attention_mask)
         last_hidden_state = outputs.last_hidden_state
 
-        # Ambil representation dari token non-padded terakhir per baris batch
         batch_size = input_ids.shape[0]
         sequence_lengths = attention_mask.sum(dim=1) - 1
-        last_token_hidden_states = last_hidden_state[torch.arange(batch_size), sequence_lengths]
+        last_token_hidden = last_hidden_state[torch.arange(batch_size), sequence_lengths]
 
         logits = {}
         total_loss = 0.0
 
         for aspect in self.aspects:
-            # Pindahkan head ke device yang sama dengan hidden state
-            head = self.heads[aspect].to(last_token_hidden_states.device)
-            aspect_logits = head(last_token_hidden_states)
+            head = self.heads[aspect].to(last_token_hidden.device)
+            aspect_logits = head(last_token_hidden)
             logits[aspect] = aspect_logits
 
             if labels is not None:
@@ -122,8 +158,8 @@ class SahabatAIMultiHeadClassifier(nn.Module):
                     target = None
 
                 if target is not None:
-                    weight = class_weights[aspect].to(aspect_logits.device) if class_weights and aspect in class_weights else None
-                    criterion = nn.CrossEntropyLoss(weight=weight)
+                    alpha = class_weights[aspect].to(aspect_logits.device) if class_weights and aspect in class_weights else None
+                    criterion = FocalLoss(alpha=alpha, gamma=self.focal_gamma)
                     loss_aspect = criterion(aspect_logits, target)
                     total_loss += loss_aspect
 
@@ -135,4 +171,4 @@ class SahabatAIMultiHeadClassifier(nn.Module):
 
 
 if __name__ == "__main__":
-    print("SahabatAI Multi-Head Classifier module initialized successfully!")
+    print("SahabatAI Multi-Head Classifier with Focal Loss initialized successfully!")

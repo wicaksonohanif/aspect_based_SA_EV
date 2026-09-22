@@ -1,8 +1,8 @@
 """
-Metrics Evaluator & Confusion Matrix Visualization Module for ABSA
+Metrics Evaluator & Confusion Matrix Visualization Module for ABSA (Optimized with Dynamic Thresholding)
 Spec Compliance: specs/03_model_training.spec.md
-Computes Accuracy, Precision, Recall, Macro/Weighted F1, Exact Match Ratio,
-Class Weights, and 4x4 Confusion Matrices per aspect.
+Computes Accuracy, Precision, Recall, Macro/Weighted F1 (All-Class & Active-Sentiment), Exact Match Ratio,
+Smoothed Class Weights, and 4x4 Confusion Matrices per aspect.
 """
 
 import numpy as np
@@ -19,15 +19,14 @@ ASPECTS = ['infra', 'ekonomi', 'kualitas', 'purnajual']
 CLASS_NAMES = ['None', 'Positif', 'Netral', 'Negatif']
 
 
-def compute_aspect_class_weights(df: pd.DataFrame, aspects: list[str] = ASPECTS) -> dict[str, torch.Tensor]:
+def compute_aspect_class_weights(
+    df: pd.DataFrame,
+    aspects: list[str] = ASPECTS,
+    smooth_factor: float = 0.5,
+) -> dict[str, torch.Tensor]:
     """
-    Menghitung loss class weights ter-balans per aspek untuk menangani class imbalance.
-
-    Args:
-        df: Dataframe pandas yang berisi kolom '{aspect}_sentiment'
-
-    Returns:
-        Dict mapping aspect -> torch.FloatTensor shape [4]
+    Menghitung smoothed loss class weights (menggunakan akar kuadrat dari balanced weights)
+    untuk mencegah gradient spike berlebih pada kelas minoritas.
     """
     weights_dict = {}
     classes = np.array([0, 1, 2, 3])
@@ -39,12 +38,40 @@ def compute_aspect_class_weights(df: pd.DataFrame, aspects: list[str] = ASPECTS)
             continue
 
         raw_vals = df[col].fillna("none").astype(str).str.lower().map(LABEL2ID).fillna(0).astype(int).values
-        
-        # Calculate balanced weights using sklearn
-        weights = compute_class_weight(class_weight="balanced", classes=classes, y=raw_vals)
-        weights_dict[aspect] = torch.tensor(weights, dtype=torch.float32)
+        raw_weights = compute_class_weight(class_weight="balanced", classes=classes, y=raw_vals)
+
+        # Smooth weights via power scaling (e.g. sqrt) and normalize mean to 1.0
+        smoothed = np.power(raw_weights, smooth_factor)
+        smoothed = smoothed / np.mean(smoothed)
+
+        weights_dict[aspect] = torch.tensor(smoothed, dtype=torch.float32)
 
     return weights_dict
+
+
+def predict_with_threshold(logits: torch.Tensor | np.ndarray, none_threshold: float = 0.40) -> np.ndarray:
+    """
+    Prediksi label menggunakan Dynamic Decision Thresholding untuk kelas 'None' (index 0).
+    Jika P(None) > none_threshold, maka diprediksi 'None' (0).
+    Jika P(None) <= none_threshold, maka diprediksi argmax dari kelas sentimen aktif [1: positif, 2: netral, 3: negatif].
+    """
+    if isinstance(logits, torch.Tensor):
+        probs = torch.softmax(logits, dim=-1).detach().cpu().numpy()
+    else:
+        exp_logits = np.exp(logits - np.max(logits, axis=-1, keepdims=True))
+        probs = exp_logits / np.sum(exp_logits, axis=-1, keepdims=True)
+
+    preds = []
+    for i in range(probs.shape[0]):
+        p_none = probs[i, 0]
+        if p_none > none_threshold:
+            preds.append(0)
+        else:
+            active_probs = probs[i, 1:]  # index 1, 2, 3
+            best_active_idx = int(np.argmax(active_probs)) + 1
+            preds.append(best_active_idx)
+
+    return np.array(preds)
 
 
 def evaluate_predictions(
@@ -54,18 +81,12 @@ def evaluate_predictions(
 ) -> dict:
     """
     Mengevaluasi hasil prediksi terhadap ground truth secara multi-aspek.
-
-    Args:
-        y_true_dict: Dict mapping aspect -> array 1D true labels [0, 1, 2, 3]
-        y_pred_dict: Dict mapping aspect -> array 1D predicted labels [0, 1, 2, 3]
-
-    Returns:
-        Dict lengkap berisi metrik per aspek, mean metrics, exact match ratio, dan confusion matrices.
+    Menghitung metrik All-Class (termasuk None) dan Active-Sentiment (hanya Positif, Netral, Negatif).
     """
     aspect_metrics = {}
     cm_dict = {}
-    macro_f1s = []
-    weighted_f1s = []
+    macro_f1s_all = []
+    macro_f1s_active = []
     accuracies = []
 
     for aspect in aspects:
@@ -73,32 +94,35 @@ def evaluate_predictions(
         y_pred = np.array(y_pred_dict[aspect])
 
         acc = accuracy_score(y_true, y_pred)
-        prec_macro = precision_score(y_true, y_pred, average="macro", zero_division=0)
-        rec_macro = recall_score(y_true, y_pred, average="macro", zero_division=0)
-        f1_macro = f1_score(y_true, y_pred, average="macro", zero_division=0)
+        
+        # All-Class Metrics (Classes 0, 1, 2, 3)
+        prec_m_all = precision_score(y_true, y_pred, average="macro", zero_division=0)
+        rec_m_all = recall_score(y_true, y_pred, average="macro", zero_division=0)
+        f1_m_all = f1_score(y_true, y_pred, average="macro", zero_division=0)
 
-        prec_weighted = precision_score(y_true, y_pred, average="weighted", zero_division=0)
-        rec_weighted = recall_score(y_true, y_pred, average="weighted", zero_division=0)
-        f1_weighted = f1_score(y_true, y_pred, average="weighted", zero_division=0)
+        # Active-Sentiment Metrics (Classes 1, 2, 3)
+        prec_m_active = precision_score(y_true, y_pred, labels=[1, 2, 3], average="macro", zero_division=0)
+        rec_m_active = recall_score(y_true, y_pred, labels=[1, 2, 3], average="macro", zero_division=0)
+        f1_m_active = f1_score(y_true, y_pred, labels=[1, 2, 3], average="macro", zero_division=0)
 
+        f1_w_all = f1_score(y_true, y_pred, average="weighted", zero_division=0)
         cm = confusion_matrix(y_true, y_pred, labels=[0, 1, 2, 3])
 
         aspect_metrics[aspect] = {
             "accuracy": acc,
-            "precision_macro": prec_macro,
-            "recall_macro": rec_macro,
-            "f1_macro": f1_macro,
-            "precision_weighted": prec_weighted,
-            "recall_weighted": rec_weighted,
-            "f1_weighted": f1_weighted,
+            "f1_macro_all": f1_m_all,
+            "f1_macro_active": f1_m_active,
+            "precision_macro_all": prec_m_all,
+            "recall_macro_all": rec_m_all,
+            "f1_weighted_all": f1_w_all,
         }
         cm_dict[aspect] = cm
 
         accuracies.append(acc)
-        macro_f1s.append(f1_macro)
-        weighted_f1s.append(f1_weighted)
+        macro_f1s_all.append(f1_m_all)
+        macro_f1s_active.append(f1_m_active)
 
-    # Calculate Exact Match Ratio (Subset Accuracy: 100% match across all 4 aspects)
+    # Calculate Exact Match Ratio (Subset Accuracy)
     n_samples = len(y_true_dict[aspects[0]])
     exact_matches = 0
     for i in range(n_samples):
@@ -108,10 +132,10 @@ def evaluate_predictions(
     exact_match_ratio = exact_matches / n_samples if n_samples > 0 else 0.0
 
     overall_metrics = {
-        "mean_accuracy": np.mean(accuracies),
-        "mean_macro_f1": np.mean(macro_f1s),
-        "mean_weighted_f1": np.mean(weighted_f1s),
-        "exact_match_ratio": exact_match_ratio,
+        "mean_accuracy": float(np.mean(accuracies)),
+        "mean_macro_f1_all": float(np.mean(macro_f1s_all)),
+        "mean_macro_f1_active": float(np.mean(macro_f1s_active)),
+        "exact_match_ratio": float(exact_match_ratio),
     }
 
     return {
@@ -128,7 +152,7 @@ def plot_confusion_matrices(
     aspects: list[str] = ASPECTS,
 ) -> str:
     """
-    Visualisasi Grid 2x2 Heatmap Confusion Matrix 4x4 untuk 4 aspek dan menyimpan sebagai gambar.
+    Visualisasi Grid 2x2 Heatmap Confusion Matrix 4x4.
     """
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     fig.suptitle(f"Confusion Matrices 4x4 — {model_name}", fontsize=16, fontweight="bold", y=0.98)
@@ -158,4 +182,4 @@ def plot_confusion_matrices(
 
 
 if __name__ == "__main__":
-    print("Metrics Evaluator module initialized successfully!")
+    print("Optimized Metrics Evaluator module initialized successfully!")

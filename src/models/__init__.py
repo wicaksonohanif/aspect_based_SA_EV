@@ -6,6 +6,7 @@ from src.models.indoroberta_classifier import IndoRoBERTaMultiHeadClassifier
 from src.models.sahabatai_classifier import SahabatAIMultiHeadClassifier
 from src.models.metrics_evaluator import (
     compute_aspect_class_weights,
+    predict_with_threshold,
     evaluate_predictions,
     plot_confusion_matrices,
     LABEL2ID,
@@ -17,6 +18,7 @@ __all__ = [
     "IndoRoBERTaMultiHeadClassifier",
     "SahabatAIMultiHeadClassifier",
     "compute_aspect_class_weights",
+    "predict_with_threshold",
     "evaluate_predictions",
     "plot_confusion_matrices",
     "LABEL2ID",
