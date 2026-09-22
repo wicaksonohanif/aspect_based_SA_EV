@@ -7,3 +7,5 @@ __pycache__/
 
 # Local data (prevent uploading raw extracted data if sensitive/large)
 # data/raw/
+
+./journal
