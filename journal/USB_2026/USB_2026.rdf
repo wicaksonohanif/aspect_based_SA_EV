@@ -1,0 +1,752 @@
+<rdf:RDF
+ xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+ xmlns:z="http://www.zotero.org/namespaces/export#"
+ xmlns:dcterms="http://purl.org/dc/terms/"
+ xmlns:link="http://purl.org/rss/1.0/modules/link/"
+ xmlns:dc="http://purl.org/dc/elements/1.1/"
+ xmlns:bib="http://purl.org/net/biblio#"
+ xmlns:foaf="http://xmlns.com/foaf/0.1/"
+ xmlns:prism="http://prismstandard.org/namespaces/1.2/basic/">
+    <bib:Document rdf:about="https://socs.binus.ac.id/2025/10/21/aspect-based-sentiment-analysis-absa-analisis-sentimen-yang-lebih-mendalam-dan-kontekstual/">
+        <z:itemType>blogPost</z:itemType>
+        <dcterms:isPartOf>
+           <z:Blog></z:Blog>
+        </dcterms:isPartOf>
+        <link:link rdf:resource="#item_145"/>
+        <dc:title>Aspect-Based Sentiment Analysis (ABSA): Analisis Sentimen yang Lebih Mendalam dan Kontekstual</dc:title>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://socs.binus.ac.id/2025/10/21/aspect-based-sentiment-analysis-absa-analisis-sentimen-yang-lebih-mendalam-dan-kontekstual/</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 01:41:37</dcterms:dateSubmitted>
+        <z:shortTitle>Aspect-Based Sentiment Analysis (ABSA)</z:shortTitle>
+    </bib:Document>
+    <z:Attachment rdf:about="#item_145">
+        <z:itemType>attachment</z:itemType>
+        <z:path rdf:resource="files/145/aspect-based-sentiment-analysis-absa-analisis-sentimen-yang-lebih-mendalam-dan-kontekstual.html"/>
+        <dc:title>Snapshot</dc:title>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://socs.binus.ac.id/2025/10/21/aspect-based-sentiment-analysis-absa-analisis-sentimen-yang-lebih-mendalam-dan-kontekstual/</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 01:41:41</dcterms:dateSubmitted>
+        <z:linkMode>1</z:linkMode>
+        <link:type>text/html</link:type>
+    </z:Attachment>
+    <bib:Article rdf:about="https://link.springer.com/10.1007/s10462-024-10906-z">
+        <z:itemType>journalArticle</z:itemType>
+        <dcterms:isPartOf rdf:resource="urn:issn:1573-7462"/>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Hua</foaf:surname>
+                        <foaf:givenName>Yan Cathy</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Denny</foaf:surname>
+                        <foaf:givenName>Paul</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Wicker</foaf:surname>
+                        <foaf:givenName>Jörg</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Taskova</foaf:surname>
+                        <foaf:givenName>Katerina</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <link:link rdf:resource="#item_148"/>
+        <dc:title>A systematic review of aspect-based sentiment analysis: domains, methods, and trends</dc:title>
+        <dcterms:abstract>Aspect-based Sentiment Analysis (ABSA) is a fine-grained type of sentiment analysis that identifies aspects and their associated opinions from a given text. With the surge of digital opinionated text data, ABSA gained increasing popularity for its ability to mine more detailed and targeted insights. Many review papers on ABSA subtasks and solution methodologies exist, however, few focus on trends over time or systemic issues relating to research application domains, datasets, and solution approaches. To fill the gap, this paper presents a Systematic Literature Review (SLR) of ABSA studies with a focus on trends and high-level relationships among these fundamental components. This review is one of the largest SLRs on ABSA. To our knowledge, it is also the first to systematically examine the interrelations among ABSA research and data distribution across domains, as well as trends in solution paradigms and approaches. Our sample includes 727 primary studies screened from 8550 search results without time constraints via an innovative automatic filtering process. Our quantitative analysis not only identifies trends in nearly two decades of ABSA research development but also unveils a systemic lack of dataset and domain diversity as well as domain mismatch that may hinder the development of future ABSA research. We discuss these findings and their implications and propose suggestions for future research.</dcterms:abstract>
+        <dc:date>2024-09-17</dc:date>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://link.springer.com/10.1007/s10462-024-10906-z</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 01:47:02</dcterms:dateSubmitted>
+        <z:shortTitle>A systematic review of aspect-based sentiment analysis</z:shortTitle>
+        <z:language>en</z:language>
+        <z:libraryCatalog>DOI.org (Crossref)</z:libraryCatalog>
+        <bib:pages>296</bib:pages>
+    </bib:Article>
+    <bib:Journal rdf:about="urn:issn:1573-7462">
+        <dc:identifier>DOI 10.1007/s10462-024-10906-z</dc:identifier>
+        <prism:volume>57</prism:volume>
+        <dc:title>Artificial Intelligence Review</dc:title>
+        <dc:identifier>ISSN 1573-7462</dc:identifier>
+        <prism:number>11</prism:number>
+        <dcterms:alternative>Artif Intell Rev</dcterms:alternative>
+    </bib:Journal>
+    <z:Attachment rdf:about="#item_148">
+        <z:itemType>attachment</z:itemType>
+        <z:path rdf:resource="files/148/Hua et al. - 2024 - A systematic review of aspect-based sentiment analysis domains, methods, and trends.pdf"/>
+        <dc:title>PDF</dc:title>
+        <dc:identifier>
+            <dcterms:URI>
+               <rdf:value>https://arxiv.org/pdf/2311.10777</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 01:46:56</dcterms:dateSubmitted>
+        <z:linkMode>1</z:linkMode>
+        <link:type>application/pdf</link:type>
+    </z:Attachment>
+    <bib:Article rdf:about="https://bright-journal.org/Journal/index.php/JADS/article/view/328">
+        <z:itemType>journalArticle</z:itemType>
+        <dcterms:isPartOf rdf:resource="urn:issn:27236471"/>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Setiawan</foaf:surname>
+                        <foaf:givenName>Esther Irawati</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <link:link rdf:resource="#item_150"/>
+        <dc:title>Aspect-Based Sentiment Analysis of Healthcare Reviews from Indonesian Hospitals based on Weighted Average Ensemble</dc:title>
+        <dc:date>2024-12-1</dc:date>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://bright-journal.org/Journal/index.php/JADS/article/view/328</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 01:49:02</dcterms:dateSubmitted>
+        <z:language>en</z:language>
+        <z:libraryCatalog>DOI.org (Crossref)</z:libraryCatalog>
+        <bib:pages>1579-1596</bib:pages>
+    </bib:Article>
+    <bib:Journal rdf:about="urn:issn:27236471">
+        <dc:identifier>DOI 10.47738/jads.v5i4.328</dc:identifier>
+        <prism:volume>5</prism:volume>
+        <dc:title>Journal of Applied Data Sciences</dc:title>
+        <dc:identifier>ISSN 27236471</dc:identifier>
+        <prism:number>4</prism:number>
+        <dcterms:alternative>J. Appl. Data Sci.</dcterms:alternative>
+    </bib:Journal>
+    <z:Attachment rdf:about="#item_150">
+        <z:itemType>attachment</z:itemType>
+        <z:path rdf:resource="files/150/Setiawan - 2024 - Aspect-Based Sentiment Analysis of Healthcare Reviews from Indonesian Hospitals based on Weighted Av.pdf"/>
+        <dc:title>PDF</dc:title>
+        <link:type>application/pdf</link:type>
+    </z:Attachment>
+    <bib:Document rdf:about="https://kaggle.com/code/nkitgupta/aspect-based-sentiment-analysis">
+        <z:itemType>webpage</z:itemType>
+        <dcterms:isPartOf>
+           <z:Website></z:Website>
+        </dcterms:isPartOf>
+        <link:link rdf:resource="#item_153"/>
+        <dc:title>Aspect Based Sentiment Analysis</dc:title>
+        <dcterms:abstract>Explore and run AI code with Kaggle Notebooks | Using data from Flipkart Cell Phone Reviews</dcterms:abstract>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://kaggle.com/code/nkitgupta/aspect-based-sentiment-analysis</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 01:50:52</dcterms:dateSubmitted>
+        <z:language>en</z:language>
+    </bib:Document>
+    <z:Attachment rdf:about="#item_153">
+        <z:itemType>attachment</z:itemType>
+        <z:path rdf:resource="files/153/aspect-based-sentiment-analysis.html"/>
+        <dc:title>Snapshot</dc:title>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://kaggle.com/code/nkitgupta/aspect-based-sentiment-analysis</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 01:50:56</dcterms:dateSubmitted>
+        <z:linkMode>1</z:linkMode>
+        <link:type>text/html</link:type>
+    </z:Attachment>
+    <bib:Article rdf:about="https://journal.unpacti.ac.id/index.php/JSCE/article/view/2722">
+        <z:itemType>journalArticle</z:itemType>
+        <dcterms:isPartOf rdf:resource="urn:issn:2723-1240"/>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Vadila</foaf:surname>
+                        <foaf:givenName>Nur</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Limbong</foaf:surname>
+                        <foaf:givenName>Josua Josen A.</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Juita</foaf:surname>
+                        <foaf:givenName>Ratna</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <link:link rdf:resource="#item_155"/>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>Aspect-based Sentiment Analysis</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>CoreTax</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>Random Forest</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>Support Vector Machine</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>YouTube Comments</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:title>Aspect-Based Sentiment Analysis of YouTube Comments on CoreTax Using Support Vector Machine and Random Forest</dc:title>
+        <dcterms:abstract>The implementation of the CoreTax Administration System (CTAS) by the Directorate General of Taxes has received diverse responses from the public, which are reflected in YouTube comments. This study applies Aspect-Based Sentiment Analysis (ABSA) to identify user opinions regarding CoreTax and compares the performance of Support Vector Machine (SVM) and Random Forest for sentiment classification. Data were collected through web scraping from three Youtube videos, yielding 1.527 valid comments after preprocessing. A rule-based method was used to classify comments into five aspects, namely system, performance, user-friendliness, tax services, and policy. The results indicate that the system aspect was the most frequently discussed (56,12%), while negative sentiment dominated the dataset (59,2%). The highest proportion of negative sentiment was found in the user-friendliness aspect (81,29%), followed by performance (76,44%). In model evaluation, Random Forest achieved better results than SVM, obtaining 0.80 accuracy, 0.84 precision, 0.75 recall, and 0.79 F1-Score. Overall, ABSA provides deeper insights into user perceptions and issues related to CoreTax implementation.</dcterms:abstract>
+        <dc:date>2026-07-30</dc:date>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://journal.unpacti.ac.id/index.php/JSCE/article/view/2722</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 01:56:47</dcterms:dateSubmitted>
+        <z:language>en</z:language>
+        <z:libraryCatalog>journal.unpacti.ac.id</z:libraryCatalog>
+        <dc:rights>Copyright (c) 2026 Journal of System and Computer Engineering</dc:rights>
+        <bib:pages>277-291</bib:pages>
+    </bib:Article>
+    <bib:Journal rdf:about="urn:issn:2723-1240">
+        <dc:identifier>DOI 10.61628/jsce.v7i3.2722</dc:identifier>
+        <prism:volume>7</prism:volume>
+        <dc:title>Journal of System and Computer Engineering</dc:title>
+        <dc:identifier>ISSN 2723-1240</dc:identifier>
+        <prism:number>3</prism:number>
+    </bib:Journal>
+    <z:Attachment rdf:about="#item_155">
+        <z:itemType>attachment</z:itemType>
+        <z:path rdf:resource="files/155/Vadila et al. - 2026 - Aspect-Based Sentiment Analysis of YouTube Comments on CoreTax Using Support Vector Machine and Rand.pdf"/>
+        <dc:title>Full Text PDF</dc:title>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://journal.unpacti.ac.id/index.php/JSCE/article/download/2722/1415</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 01:56:48</dcterms:dateSubmitted>
+        <z:linkMode>1</z:linkMode>
+        <link:type>application/pdf</link:type>
+    </z:Attachment>
+    <rdf:Description rdf:about="https://ieeexplore.ieee.org/document/11381348">
+        <z:itemType>conferencePaper</z:itemType>
+        <dcterms:isPartOf>
+            <bib:Journal>
+                <dc:identifier>DOI 10.1109/ICDSG67714.2025.11381348</dc:identifier>
+                <dc:title>2025 1st International Conference on Data Science and Geoinformatics (ICDSG)</dc:title>
+            </bib:Journal>
+        </dcterms:isPartOf>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Canavara</foaf:surname>
+                        <foaf:givenName>Gisela Aveline</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Irawan</foaf:surname>
+                        <foaf:givenName>Herry</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <link:link rdf:resource="#item_159"/>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>aspect-based sentiment analysis</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>Circuits</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>Communication systems</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>Communications technology</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>Computer networks</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>electric vehicles</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>Feedback</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>HTTP</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>hybrid vehicles</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>IndoBERT</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>IndoRoBERTa</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>Internet</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>LoRa</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>Negative feedback</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>Protocols</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:title>Aspect-Based Sentiment Analysis of Indonesian YouTube Comments on Electric and Hybrid Vehicles Using IndoBERT and IndoRoBERTa</dc:title>
+        <dcterms:abstract>The global shift toward sustainable mobility has increased the adoption of Electric Vehicles (EVs) and Hybrid Vehicles (HVs) as alternatives to conventional fuel-based cars. In Indonesia, the government promotes this transition through tax incentives, purchase subsidies, and the expansion of charging infrastructure. Yet, public adoption remains limited due to concerns about cost, battery durability, and charging accessibility. This study applies Aspect-Based Sentiment Analysis (ABSA) using IndoBERT and IndoRoBERTa to analyze 37,407 Indonesian YouTube comments discussing EVs and HVs. After preprocessing and annotation, comments were categorized into predefined aspects—Performance and Driving, Cost and Economic Value, Features and Design, Battery and Charging System for EVs, and Hybrid System Component for HVs-and assigned a sentiment polarity label. Both models were fine-tuned and assessed using macro-averaged Precision, Recall, and F1-Score. IndoRoBERTa achieved the best performance, obtaining an F1-Score of 0.3319 on the HV dataset, indicating a stronger ability to interpret informal Indonesian expressions. Overall, comments about HVs reflected a higher proportion of positive sentiment (73.28%) than EVs (66.69%). Toyota and Honda were the most frequently mentioned hybrid brands, while Wuling and Hyundai dominated EV discussions. These results suggest that Indonesian users perceive hybrid vehicles as more practical and economically accessible. This study advances Indonesian-language ABSA research and provides insights to support policymakers and the automotive sector in strengthening sustainable mobility strategies.</dcterms:abstract>
+        <dc:date>2025-11</dc:date>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://ieeexplore.ieee.org/document/11381348</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 02:02:39</dcterms:dateSubmitted>
+        <z:libraryCatalog>IEEE Xplore</z:libraryCatalog>
+        <bib:pages>43-48</bib:pages>
+        <bib:presentedAt>
+            <bib:Conference>
+                <dc:title>2025 1st International Conference on Data Science and Geoinformatics (ICDSG)</dc:title>
+            </bib:Conference>
+        </bib:presentedAt>
+    </rdf:Description>
+    <z:Attachment rdf:about="#item_159">
+        <z:itemType>attachment</z:itemType>
+        <z:path rdf:resource="files/159/11381348.html"/>
+        <dc:title>Snapshot</dc:title>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://ieeexplore.ieee.org/document/11381348</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 02:02:47</dcterms:dateSubmitted>
+        <z:linkMode>1</z:linkMode>
+        <link:type>text/html</link:type>
+    </z:Attachment>
+    <bib:Article rdf:about="https://jurnal.stis.ac.id/index.php/jurnalasks/article/view/790">
+        <z:itemType>journalArticle</z:itemType>
+        <dcterms:isPartOf rdf:resource="urn:issn:2615-1367"/>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Adilla</foaf:surname>
+                        <foaf:givenName>Rahmi Elfa</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Huda</foaf:surname>
+                        <foaf:givenName>Muhammad</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Aziz</foaf:surname>
+                        <foaf:givenName>Muhammad</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Suadaa</foaf:surname>
+                        <foaf:givenName>Lya Hulliyyatus</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <link:link rdf:resource="#item_161"/>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>Aspect-Based Sentiment Analysis</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>Electric Vehicles</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>Machine Learning</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>Transfer  Learning</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>Transportation Electrification</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:title>Aspect-Based Sentiment Analysis of Transportation Electrification Opinions on YouTube Comment Data</dc:title>
+        <dcterms:abstract>Introduction/Main Objectives: This research aims to conduct an aspect-based sentiment analysis of transportation electrification opinions on YouTube comment data. Background Problems: It is difficult to summarize the sentiment of many YouTube user comments related to electric vehicles (EVs) based on their aspects; therefore, aspect-based sentiment analysis is needed to conduct further analysis. Novelty: This study identifies five aspects of EV and their sentiments at the same time. The aspects are usefulness, ease of use, comfort, cost, and incentive policies. One of this study’s methods is the transfer learning model. This model can be a solution to overcome the shortcomings of deep learning in classifying aspect-based sentiment classification on small datasets. Research Methods: The sentiment classification model used is a machine learning model, namely support vector machine (SVM) and transfer learning models from pre-trained IndoBERT and mBERT. Finding/Results: Based on the experimental results, transfer learning from the IndoBERT model achieved the best performance with accuracy and F1-Score of 89.17% and 52.66%, respectively. Furthermore, the best IndoBERT model was developed with input in the form of a combination of aspects and comment sentences. Experimental results show that there is an improvement in performance with accuracy and F1-Score of 90% and 60.70%, respectively.</dcterms:abstract>
+        <dc:date>2024-12-24</dc:date>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://jurnal.stis.ac.id/index.php/jurnalasks/article/view/790</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 02:08:21</dcterms:dateSubmitted>
+        <z:language>en</z:language>
+        <z:libraryCatalog>jurnal.stis.ac.id</z:libraryCatalog>
+        <dc:rights>Copyright (c) 2024 Jurnal Aplikasi Statistika &amp; Komputasi Statistik</dc:rights>
+        <bib:pages>140-157</bib:pages>
+    </bib:Article>
+    <bib:Journal rdf:about="urn:issn:2615-1367">
+        <dc:identifier>DOI 10.34123/jurnalasks.v16i2.790</dc:identifier>
+        <prism:volume>16</prism:volume>
+        <dc:title>Jurnal Aplikasi Statistika &amp; Komputasi Statistik</dc:title>
+        <dc:identifier>ISSN 2615-1367</dc:identifier>
+        <prism:number>2</prism:number>
+    </bib:Journal>
+    <z:Attachment rdf:about="#item_161">
+        <z:itemType>attachment</z:itemType>
+        <z:path rdf:resource="files/161/Adilla et al. - 2024 - Aspect-Based Sentiment Analysis of Transportation Electrification Opinions on YouTube Comment Data.pdf"/>
+        <dc:title>Full Text PDF</dc:title>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://jurnal.stis.ac.id/index.php/jurnalasks/article/download/790/156</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 02:08:23</dcterms:dateSubmitted>
+        <z:linkMode>1</z:linkMode>
+        <link:type>application/pdf</link:type>
+    </z:Attachment>
+    <rdf:Description rdf:about="https://arxiv.org/abs/2507.15821">
+        <z:itemType>preprint</z:itemType>
+        <dc:publisher>
+           <foaf:Organization><foaf:name>arXiv</foaf:name></foaf:Organization>
+        </dc:publisher>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Schroeder</foaf:surname>
+                        <foaf:givenName>Hope</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Roy</foaf:surname>
+                        <foaf:givenName>Deb</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Kabbara</foaf:surname>
+                        <foaf:givenName>Jad</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <link:link rdf:resource="#item_162"/>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>Computers and Society (cs.CY)</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>FOS: Computer and information sciences</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:title>Just Put a Human in the Loop? Investigating LLM-Assisted Annotation for Subjective Tasks</dc:title>
+        <dcterms:abstract>LLM use in annotation is becoming widespread, and given LLMs’ overall promising performance and speed, simply &quot;reviewing&quot; LLM annotations in interpretive tasks can be tempting. In subjective annotation tasks with multiple plausible answers, reviewing LLM outputs can change the label distribution, impacting both the evaluation of LLM performance, and analysis using these labels in a social science task downstream. We conducted a pre-registered experiment with 410 unique annotators and over 7,000 annotations testing three AI assistance conditions against controls, using two models, and two datasets. We find that presenting crowdworkers with LLM-generated annotation suggestions did not make them faster, but did improve their self-reported confidence in the task. More importantly, annotators strongly took the LLM suggestions, significantly changing the label distribution compared to the baseline. When these labels created with LLM assistance are used to evaluate LLM performance, reported model performance significantly increases. We believe our work underlines the importance of understanding the impact of LLM-assisted annotation on subjective, qualitative tasks, on the creation of gold data for training and testing, and on the evaluation of NLP systems on subjective tasks.</dcterms:abstract>
+        <dc:date>2025</dc:date>
+        <dc:identifier>DOI 10.48550/ARXIV.2507.15821</dc:identifier>
+        <dc:identifier>
+            <dcterms:URI>
+               <rdf:value>https://arxiv.org/abs/2507.15821</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 02:11:33</dcterms:dateSubmitted>
+        <z:shortTitle>Just Put a Human in the Loop?</z:shortTitle>
+        <z:language>en</z:language>
+        <z:libraryCatalog>DOI.org (Datacite)</z:libraryCatalog>
+        <dc:rights>Creative Commons Attribution 4.0 International</dc:rights>
+        <dc:description>Version Number: 1</dc:description>
+    </rdf:Description>
+    <z:Attachment rdf:about="#item_162">
+        <z:itemType>attachment</z:itemType>
+        <z:path rdf:resource="files/162/Schroeder et al. - 2025 - Just Put a Human in the Loop Investigating LLM-Assisted Annotation for Subjective Tasks.pdf"/>
+        <dc:title>PDF</dc:title>
+        <dc:identifier>
+            <dcterms:URI>
+               <rdf:value>https://arxiv.org/pdf/2507.15821v1</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 02:11:29</dcterms:dateSubmitted>
+        <z:linkMode>1</z:linkMode>
+        <link:type>application/pdf</link:type>
+    </z:Attachment>
+    <bib:Article rdf:about="#item_166">
+        <z:itemType>journalArticle</z:itemType>
+        <dcterms:isPartOf>
+            <bib:Journal>
+               <prism:volume>19</prism:volume><prism:number>2</prism:number>
+            </bib:Journal>
+        </dcterms:isPartOf>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Prasastio</foaf:surname>
+                        <foaf:givenName>Fahmi Reza</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Winarko</foaf:surname>
+                        <foaf:givenName>Edi</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <link:link rdf:resource="#item_165"/>
+        <dc:title>Multi-Domain Sentiment Analysis on Ibu Kota Nusantara (IKN) Tweets Using CNN-LSTM</dc:title>
+        <dcterms:abstract>The construction of Ibu Kota Nusantara (IKN) is a national project aimed at relocating Indonesia’s capital from Jakarta to East Kalimantan. This project has sparked various public opinions, both in favor and against, which are widely expressed through social media platforms such as Twitter (now known as X). Sentiment analysis of these opinions is crucial for understanding public perception of the IKN project. However, previous sentiment analysis studies have often overlooked domain variations in the analyzed data, such as economy, environment, and politics, each of which has distinct linguistic characteristics.</dcterms:abstract>
+        <dc:date>2025</dc:date>
+        <z:language>en</z:language>
+        <z:libraryCatalog>Zotero</z:libraryCatalog>
+    </bib:Article>
+    <z:Attachment rdf:about="#item_165">
+        <z:itemType>attachment</z:itemType>
+        <z:path rdf:resource="files/165/Prasastio and Winarko - 2025 - Multi-Domain Sentiment Analysis on Ibu Kota Nusantara (IKN) Tweets Using CNN-LSTM.pdf"/>
+        <dc:title>PDF</dc:title>
+        <link:type>application/pdf</link:type>
+    </z:Attachment>
+    <bib:Article rdf:about="https://ilomata.org/index.php/ijss/article/view/2235">
+        <z:itemType>journalArticle</z:itemType>
+        <dcterms:isPartOf rdf:resource="urn:issn:2714-8998"/>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Rusdi</foaf:surname>
+                        <foaf:givenName>Muhamad Gifari</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Balqiah</foaf:surname>
+                        <foaf:givenName>Tengku Ezni</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <link:link rdf:resource="#item_168"/>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>attitude</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>brand image</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>environmental concern</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>ev adoption</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>ev attributes</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>knowledge</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>perceived behavioral control</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+            <z:AutomaticTag>
+               <rdf:value>perception attributes</rdf:value>
+            </z:AutomaticTag>
+        </dc:subject>
+        <dc:subject>
+           <z:AutomaticTag><rdf:value>subjective norm</rdf:value></z:AutomaticTag>
+        </dc:subject>
+        <dc:title>Perceptions and EV Attributes Influencing Adoption in Indonesia: A TPB Approach</dc:title>
+        <dcterms:abstract>Electric vehicles (EVs) are considered a promising solution for reducing greenhousegas emissions and environmental impacts. However, public perceptions of EVs remain diverse and are influenced by various factors. This study examines the effects of EV perceptions, perceived environmental benefits, perceived risks, incentive policies, vehicle attributes (design, economic feasibility, functionality, and safety), environmental concern, and knowledge on attitudes toward EVs and their adoption. It also investigates the roles of attitude, subjective norms, perceived behavioral control, and brand image in influencing EV adoption. A quantitative approach was employed using survey data from 296 respondents who had knowledge of EVs but did not own one. The data were analyzed using SmartPLS 3. The results indicate that EV perception, perceived environmental benefits, incentive policies, economic feasibility, functionality, safety, brand image, and environmental concern have significant positive effects on attitudes toward EVs. In contrast, perceived risks and design have negative effects on attitude. Knowledge was found to have no significant effect on either attitude or EV adoption. Design, economic feasibility, functionality, and safety significantly influence brand image. Furthermore, brand image, attitude, environmental concern, subjective norms, and perceived behavioral control positively affect EV adoption. These findings provide new insights into non-user perceptions of EVs in developing countries and identify key factors that encourage consumers to transition from conventional fuel-powered vehicles to EVs.</dcterms:abstract>
+        <dc:date>2026-07-31</dc:date>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://ilomata.org/index.php/ijss/article/view/2235</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 02:15:53</dcterms:dateSubmitted>
+        <z:shortTitle>Perceptions and EV Attributes Influencing Adoption in Indonesia</z:shortTitle>
+        <z:language>en</z:language>
+        <z:libraryCatalog>ilomata.org</z:libraryCatalog>
+        <bib:pages>1047-1058</bib:pages>
+    </bib:Article>
+    <bib:Journal rdf:about="urn:issn:2714-8998">
+        <dc:identifier>DOI 10.61194/ijss.v7i3.2235</dc:identifier>
+        <prism:volume>7</prism:volume>
+        <dc:title>Ilomata International Journal of Social Science</dc:title>
+        <dc:identifier>ISSN 2714-8998</dc:identifier>
+        <prism:number>3</prism:number>
+    </bib:Journal>
+    <z:Attachment rdf:about="#item_168">
+        <z:itemType>attachment</z:itemType>
+        <z:path rdf:resource="files/168/Rusdi and Balqiah - 2026 - Perceptions and EV Attributes Influencing Adoption in Indonesia A TPB Approach.pdf"/>
+        <dc:title>Full Text PDF</dc:title>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://ilomata.org/index.php/ijss/article/download/2235/1318</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 02:15:55</dcterms:dateSubmitted>
+        <z:linkMode>1</z:linkMode>
+        <link:type>application/pdf</link:type>
+    </z:Attachment>
+    <bib:Article rdf:about="#item_169">
+        <z:itemType>journalArticle</z:itemType>
+        <dcterms:isPartOf>
+            <bib:Journal>
+                <dc:identifier>DOI 10.33395/sinkron.v9i3.15179</dc:identifier>
+                <prism:volume>9</prism:volume>
+                <dc:title>Sinkron</dc:title>
+                <dcterms:alternative>Sinkron</dcterms:alternative>
+            </bib:Journal>
+        </dcterms:isPartOf>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Saraswati</foaf:surname>
+                        <foaf:givenName>Ni Wayan</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Suryawan</foaf:surname>
+                        <foaf:givenName>I</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Muku</foaf:surname>
+                        <foaf:givenName>I</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Bisena</foaf:surname>
+                        <foaf:givenName>I</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Pramita</foaf:surname>
+                        <foaf:givenName>Dewa</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <link:link rdf:resource="#item_170"/>
+        <dc:title>Indonesian Public Sentiment Toward Electric Vehicles: Analysis of Social Media Data</dc:title>
+        <dcterms:abstract>The development of electric vehicles (EVs) in Indonesia has progressed significantly, supported by government subsidies for Battery-Based Electric Motor Vehicles. These subsidies have sparked mixed public reactions that some support them due to environmental benefits and pollution reduction, while others oppose them for various reasons. Social media platform X serves as a valuable source for gauging public opinion, though analyzing such data manually can be complex. To address this, sentiment analysis, particularly using the Support Vector Machine (SVM) method, offers an efficient solution. This study analyzes 23,031 Indonesian-language tweets from social media platform X, collected between October 2023 and July 2024, using SVM for sentiment classification. The best-performing model, with parameter C = 0.5 and without stemming, achieved an accuracy of 84.98%. The findings suggest that Indonesians generally view electric vehicles positively, with more favorable sentiments than negative ones. This study offers implications across methodological, industrial, and policy domains. Word cloud analysis further supports this, highlighting public support in areas such as pricing, infrastructure, and environmental impact. However, the study also identifies key concerns, including issues around subsidies, taxes, vehicle durability, battery types, and import regulations. Overall, the research provides meaningful insights into the diverse perspectives of Indonesian citizens regarding EVs, helping to inform future policy and development strategies.</dcterms:abstract>
+        <dc:date>2025-08-16</dc:date>
+        <z:shortTitle>Indonesian Public Sentiment Toward Electric Vehicles</z:shortTitle>
+        <z:libraryCatalog>ResearchGate</z:libraryCatalog>
+        <bib:pages>1823-1834</bib:pages>
+    </bib:Article>
+    <z:Attachment rdf:about="#item_170">
+        <z:itemType>attachment</z:itemType>
+        <z:path rdf:resource="files/170/Saraswati et al. - 2025 - Indonesian Public Sentiment Toward Electric Vehicles Analysis of Social Media Data.pdf"/>
+        <dc:title>Full Text</dc:title>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://jurnal.polgan.ac.id/index.php/sinkron/article/download/15179/3467</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 02:17:13</dcterms:dateSubmitted>
+        <z:linkMode>1</z:linkMode>
+        <link:type>application/pdf</link:type>
+    </z:Attachment>
+    <bib:Document rdf:about="https://www.cnbcindonesia.com/news/20260911105726-4-767155/china-tak-tertandingi-kuasai-mobil-listrik-ri-laku-tembus-101000-unit">
+        <z:itemType>webpage</z:itemType>
+        <dcterms:isPartOf>
+           <z:Website><dc:title>CNBC Indonesia</dc:title></z:Website>
+        </dcterms:isPartOf>
+        <bib:authors>
+            <rdf:Seq>
+                <rdf:li>
+                    <foaf:Person>
+                        <foaf:surname>Sandi</foaf:surname>
+                        <foaf:givenName>Ferry</foaf:givenName>
+                    </foaf:Person>
+                </rdf:li>
+            </rdf:Seq>
+        </bib:authors>
+        <link:link rdf:resource="#item_172"/>
+        <dc:title>China Tak Tertandingi-Kuasai Mobil Listrik RI Laku Tembus 101.000 Unit</dc:title>
+        <dcterms:abstract>Persaingan mobil listrik di Indonesia semakin ketat. Jaecoo J5 memimpin penjualan dengan 23.359 unit, menggeser BYD Atto 1.</dcterms:abstract>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://www.cnbcindonesia.com/news/20260911105726-4-767155/china-tak-tertandingi-kuasai-mobil-listrik-ri-laku-tembus-101000-unit</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 02:21:01</dcterms:dateSubmitted>
+        <z:language>id</z:language>
+    </bib:Document>
+    <z:Attachment rdf:about="#item_172">
+        <z:itemType>attachment</z:itemType>
+        <z:path rdf:resource="files/172/china-tak-tertandingi-kuasai-mobil-listrik-ri-laku-tembus-101000-unit.html"/>
+        <dc:title>Snapshot</dc:title>
+        <dc:identifier>
+            <dcterms:URI>
+                <rdf:value>https://www.cnbcindonesia.com/news/20260911105726-4-767155/china-tak-tertandingi-kuasai-mobil-listrik-ri-laku-tembus-101000-unit</rdf:value>
+            </dcterms:URI>
+        </dc:identifier>
+        <dcterms:dateSubmitted>2026-09-13 02:21:09</dcterms:dateSubmitted>
+        <z:linkMode>1</z:linkMode>
+        <link:type>text/html</link:type>
+    </z:Attachment>
+</rdf:RDF>

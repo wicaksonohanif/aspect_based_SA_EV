@@ -142,9 +142,40 @@ usb_2026/
 
 ---
 
-## 8. Langkah Implementasi (Next Actions)
+## 8. Panduan Berkas Input (Upload) & Output Deployment (Download) Kaggle
+
+### 📤 8.1 Berkas Input yang Harus Diunggah ke Kaggle (*Input Dataset*)
+Unggah 2 berkas CSV dari folder `data/processed/` lokal Anda ke fitur **Kaggle Datasets**:
+1. `train.csv` (667 baris - Data Latih Pure Human Gold Standard)
+2. `val.csv` (287 baris - Data Validasi/Uji Pure Human Gold Standard)
+
+---
+
+### 📥 8.2 Berkas Output yang Harus Didownload dari Kaggle untuk Deployment Aplikasi (*Output Artifacts*)
+
+Setelah Notebook 04 selesai di-run di Kaggle (`Run All`), notebook akan otomatis mengompresi dan menyimpan berkas berikut pada direktori `/kaggle/working/` untuk Anda unduh:
+
+#### 1. Folder Checkpoint IndoRoBERTa Classifier (`indoroberta_absa_model.zip` ~440 MB):
+- `config.json` (Konfigurasi arsitektur multi-head & label mapping: `0: None, 1: positif, 2: netral, 3: negatif`)
+- `model.safetensors` atau `pytorch_model.bin` (Bobot model fine-tuned IndoRoBERTa)
+- `tokenizer_config.json`, `vocab.txt`, `special_tokens_map.json` (Tokenizer files)
+*Fungsi:* Digunakan langsung untuk deployment aplikasi web (Streamlit / FastAPI / Flask) secara lokal maupun cloud.
+
+#### 2. Folder Adapter LoRA SahabatAI-8B (`sahabatai_absa_lora.zip` ~40 MB):
+- `adapter_config.json` (Konfigurasi LoRA adapter)
+- `adapter_model.safetensors` (Bobot adapter LoRA ~40 MB)
+*Fungsi:* Digunakan jika ingin me-load adapter SahabatAI-8B via HuggingFace PEFT / vLLM.
+
+#### 3. Berkas Evaluasi & Laporan Skripsi:
+- `model_comparison_metrics.csv` & `model_comparison_metrics.json` (Tabel lengkap metrik Accuracy, Precision, Recall, Macro F1 per aspek)
+- `confusion_matrices_indoroberta.png` & `confusion_matrices_sahabatai.png` (Visualisasi matriks kebingungan 4x4 untuk Bab 4 Laporan)
+
+---
+
+## 9. Langkah Implementasi (Next Actions)
 
 1. **Membuat Modul PyTorch Local Classifier:** `src/models/indoroberta_classifier.py` dan `src/models/sahabatai_classifier.py`.
 2. **Membuat Script Evaluasi Metrik:** `src/models/metrics_evaluator.py`.
 3. **Penyusunan Notebook Kaggle:** `notebooks/04_kaggle_training_indoroberta_vs_sahabatai.ipynb` yang siap di-upload dan di-run di Kaggle Notebooks dengan GPU T4.
+
 
