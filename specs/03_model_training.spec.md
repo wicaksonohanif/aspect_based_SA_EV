@@ -87,7 +87,7 @@ Setiap komentar teks diuji secara serentak terhadap **4 Aspek Otomotif EV**:
 
 ## 5. Metrik Evaluasi & Perbandingan
 
-Kedua model dievaluasi secara adil pada **Test Set (181 data uji independen di `test.csv`)**:
+Kedua model dievaluasi secara adil pada **Validation Set (287 data uji/validasi independen di `val.csv`)**:
 
 1. **Metrik per Aspek (Infra, Ekonomi, Kualitas, Purnajual):**
    - **Accuracy**
@@ -102,7 +102,27 @@ Kedua model dievaluasi secara adil pada **Test Set (181 data uji independen di `
 
 ---
 
-## 6. Struktur Berkas & Skrip Kaggle Notebook
+## 6. Proteksi Keamanan VRAM & OOM Prevention (Kaggle Free Tier GPU T4 16GB)
+
+Untuk menjamin eksekusi di **Kaggle Notebooks versi gratis** (Batas VRAM T4 GPU = 15,9 GB) berjalan 100% lancar tanpa *Out-Of-Memory (OOM)* error, diterapkan 6 lapis proteksi memori:
+
+1. **4-Bit NF4 Quantization (`bitsandbytes`):**
+   - Memuat bobot SahabatAI-8B dalam presisi 4-bit NormalFloat, memotong konsumsi VRAM awal dari **~16 GB menjadi hanya ~5.5 GB**.
+2. **Gradient Checkpointing:**
+   - Mengaktifkan `model.gradient_checkpointing_enable()` pada SahabatAI-8B untuk menghemat ~60% VRAM aktivasi saat *backward pass*.
+3. **Micro-Batching & Gradient Accumulation:**
+   - **SahabatAI-8B:** `per_device_train_batch_size = 2` (Micro-Batch) + `gradient_accumulation_steps = 8` $\rightarrow$ *Effective Batch Size = 16*. Ini menjaga puncak penggunaan VRAM < 8 GB.
+   - **IndoRoBERTa:** `per_device_train_batch_size = 16`.
+4. **Mixed Precision Training (FP16/BF16):**
+   - Menggunakan `fp16=True` (atau `bf16=True`) pada PyTorch / HuggingFace Trainer untuk memotong penggunaan memori aktivasi hingga 50%.
+5. **Pembersihan Memori Seketika (Explicit CUDA Garbage Collection):**
+   - Di antara eksekusi Model 1 (IndoRoBERTa) dan Model 2 (SahabatAI-8B), dilakukan penghapusan objek secara tegas (`del model`, `del trainer`) diikuti oleh `gc.collect()` dan `torch.cuda.empty_cache()` untuk mengosongkan 100% VRAM.
+6. **Pembatasan Panjang Teks (*Max Sequence Length* = 128 Token):**
+   - Berdasarkan hasil EDA 03 (median komentar = 10 kata, 99th percentile < 50 kata), `max_length` dibatasi hingga **128 token**. Hal ini mencegah pengalokasian memori berlebih untuk 512 token.
+
+---
+
+## 7. Struktur Berkas & Skrip Kaggle Notebook
 
 ```
 usb_2026/
@@ -122,8 +142,9 @@ usb_2026/
 
 ---
 
-## 7. Langkah Implementasi (Next Actions)
+## 8. Langkah Implementasi (Next Actions)
 
 1. **Membuat Modul PyTorch Local Classifier:** `src/models/indoroberta_classifier.py` dan `src/models/sahabatai_classifier.py`.
 2. **Membuat Script Evaluasi Metrik:** `src/models/metrics_evaluator.py`.
 3. **Penyusunan Notebook Kaggle:** `notebooks/04_kaggle_training_indoroberta_vs_sahabatai.ipynb` yang siap di-upload dan di-run di Kaggle Notebooks dengan GPU T4.
+
