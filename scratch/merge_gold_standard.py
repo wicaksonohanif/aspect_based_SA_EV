@@ -24,7 +24,7 @@ def main():
         'negative': 'negatif'
     }
 
-    print(f"Loading base auto-labeled comments from {auto_path}...")
+    print(f"Loading base comments from {auto_path}...")
     auto_df = pd.read_csv(auto_path, encoding='utf-8-sig')
 
     # Collect human audits from sample and remaining sheets
@@ -34,8 +34,7 @@ def main():
         print(f"Reading {sample_path}...")
         df1 = pd.read_excel(sample_path)
         for _, r in df1.iterrows():
-            c_id = r['comment_id']
-            audit_dict[c_id] = r.to_dict()
+            audit_dict[r['comment_id']] = r.to_dict()
 
     if remaining_path.exists():
         print(f"Reading {remaining_path}...")
@@ -47,8 +46,15 @@ def main():
 
     print(f"Total audit records collected: {len(audit_dict)}")
 
-    overridden_comments = 0
-    total_aspects_overridden = 0
+    # Clear machine aspect sentiments first for PURE human gold standard
+    for asp in aspects:
+        auto_df[f'{asp}_sentiment'] = np.nan
+        auto_df[f'{asp}_sentiment'] = auto_df[f'{asp}_sentiment'].astype(object)
+    auto_df['label_source'] = np.nan
+    auto_df['label_source'] = auto_df['label_source'].astype(object)
+
+    pure_human_count = 0
+    total_aspects_count = 0
 
     for idx, row in auto_df.iterrows():
         c_id = row['comment_id']
@@ -64,7 +70,7 @@ def main():
                     break
 
             if has_any_human:
-                overridden_comments += 1
+                pure_human_count += 1
                 auto_df.at[idx, 'label_source'] = 'Human-Audit-GoldStandard'
                 for asp in aspects:
                     raw_h = h_row.get(f'human_{asp}')
@@ -72,58 +78,47 @@ def main():
                         clean_str = str(raw_h).strip().lower()
                         norm_h = typo_map.get(clean_str, clean_str)
                         auto_df.at[idx, f'{asp}_sentiment'] = norm_h
-                        total_aspects_overridden += 1
+                        total_aspects_count += 1
                     else:
                         auto_df.at[idx, f'{asp}_sentiment'] = np.nan
-            else:
-                # User directive: "baris yang tidak terisi sentimen di kolom human, diabaikan saja."
-                pass
-
-    # Standardize ALL sentiment columns in auto_df (both machine & human) to lowercase
-    for asp in aspects:
-        col = f'{asp}_sentiment'
-        if col in auto_df.columns:
-            auto_df[col] = auto_df[col].apply(
-                lambda x: typo_map.get(str(x).strip().lower(), str(x).strip().lower())
-                if pd.notnull(x) and str(x).strip() != '' and str(x).strip().lower() != 'nan' else np.nan
-            )
 
     print(f"\n==================================================")
-    print(f"HUMAN GOLD STANDARD MERGE COMPLETE:")
-    print(f"  - Total Audited Comments Overridden: {overridden_comments}")
-    print(f"  - Total Aspect Sentiment Labels Overridden: {total_aspects_overridden}")
+    print(f"PURE HUMAN GOLD STANDARD PROCESSING COMPLETE:")
+    print(f"  - Pure Human Audited Comments: {pure_human_count}")
+    print(f"  - Total Human Aspect Sentiment Labels: {total_aspects_count}")
     print(f"==================================================\n")
 
     master_path = Path('data/interim/master_labeled_comments.csv')
     auto_df.to_csv(master_path, index=False, encoding='utf-8-sig')
     print(f"Saved master labeled dataset to: {master_path.resolve()}")
 
-    # Filter aspect-bearing comments
+    # Filter ONLY aspect-bearing comments that have Human Gold Standard labels
     aspect_cols = [f'{asp}_sentiment' for asp in aspects]
-    valid_df = auto_df[auto_df[aspect_cols].notnull().any(axis=1)].copy()
+    valid_df = auto_df[auto_df['label_source'] == 'Human-Audit-GoldStandard'].copy()
+    valid_df = valid_df[valid_df[aspect_cols].notnull().any(axis=1)].copy()
+    
     valid_path = Path('data/interim/valid_labeled_comments.csv')
     valid_df.to_csv(valid_path, index=False, encoding='utf-8-sig')
-    print(f"Filtered {len(valid_df)} valid aspect-bearing comments out of {len(auto_df)} total comments.")
+    print(f"Filtered {len(valid_df)} PURE HUMAN GOLD STANDARD aspect-bearing comments out of {len(auto_df)} total comments.")
 
     # Aspect distribution
-    print("\nAspect Sentiment Breakdown (100% Gold Standard Valid Dataset):")
+    print("\nAspect Sentiment Breakdown (100% Pure Human Gold Standard):")
     for asp in aspects:
         col = f'{asp}_sentiment'
         counts = valid_df[col].value_counts(dropna=False).to_dict()
         print(f"  - Aspect '{asp}': {counts}")
 
-    # Re-split dataset 70/15/15
-    print("\nSplitting updated dataset into train (70%), val (15%), test (15%)...")
-    train_path, val_path, test_path = DatasetSplitter.split_dataset(
+    # Re-split dataset 70/30 (Train / Val)
+    print("\nSplitting pure human gold standard dataset into train (70%) and val (30%)...")
+    train_path, val_path = DatasetSplitter.split_dataset(
         input_csv_path=str(valid_path),
         output_dir="data/processed",
         train_ratio=0.70,
-        val_ratio=0.15,
-        test_ratio=0.15,
+        val_ratio=0.30,
         random_seed=42
     )
 
-    print("\nCOMPLETE: Updated train.csv, val.csv, test.csv in data/processed/")
+    print("\nCOMPLETE: Updated train.csv (70%) and val.csv (30%) in data/processed/")
 
 if __name__ == '__main__':
     main()

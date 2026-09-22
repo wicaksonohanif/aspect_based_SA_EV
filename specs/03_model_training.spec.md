@@ -17,10 +17,9 @@ Spesifikasi ini mengatur perancangan, pelatihan, dan evaluasi komparatif antara 
 1. **Model 1 (Encoder Discriminative Classifier):** **IndoRoBERTa-base** (`indolem/indobert-base-uncased`, 110M Parameter) menggunakan arsitektur *Multi-Head Sequence Classification* (Full Fine-Tuning).
 2. **Model 2 (Decoder LLM Discriminative Classifier):** **SahabatAI-Instruct-8B** (`SahabatAI/SahabatAI-Instruct-8B`, 8B Parameter) menggunakan arsitektur *Multi-Head Sequence Classification* berbasis **QLoRA / LoRA Partial Fine-Tuning**.
 
-Pengujian dilakukan pada dataset **100% Gold Standard (Human Verified)** yang terbagi tanpa kebocoran data (*zero data leakage*):
-- **Train Set (70%):** 844 komentar (`data/processed/train.csv`)
-- **Validation Set (15%):** 181 komentar (`data/processed/val.csv`)
-- **Test Set (15%):** 181 komentar (`data/processed/test.csv`)
+Pengujian dilakukan pada dataset **100% Pure Human Gold Standard (Murni Audit Manusia)** yang terbagi tanpa kebocoran data (*zero data leakage*):
+- **Train Set (70%):** 667 komentar (`data/processed/train.csv`)
+- **Validation Set (30%):** 287 komentar (`data/processed/val.csv`)
 
 ---
 

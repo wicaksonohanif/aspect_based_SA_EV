@@ -9,11 +9,11 @@ def create_eda_notebook():
     cells = []
 
     # Title & Markdown Intro
-    cells.append(nbf.v4.new_markdown_cell("""# 📊 Notebook 03: Exploratory Data Analysis (EDA) on Labeled Dataset
+    cells.append(nbf.v4.new_markdown_cell("""# 📊 Notebook 03: Exploratory Data Analysis (EDA) on Pure Human Gold Standard Dataset
 
 **Proyek:** Aspect-Based Sentiment Analysis (ABSA) Komentar YouTube EV China di Indonesia  
 **Tujuan Notebook:** 
-Melakukan analisis eksploratif mendalam terhadap dataset terlabel 100% Gold Standard (`data/interim/master_labeled_comments.csv`, `data/interim/valid_labeled_comments.csv`, dan split data `train.csv`, `val.csv`, `test.csv` di `data/processed/`).
+Melakukan analisis eksploratif mendalam terhadap dataset terlabel **100% Murni Audit Manusia (Pure Human Gold Standard)** (`data/interim/master_labeled_comments.csv`, `data/interim/valid_labeled_comments.csv`, dan split data `train.csv` (70%) & `val.csv` (30%) di `data/processed/`).
 
 ### 🎯 Pokok Bahasan Analisis:
 1. **Rasio Komentar Ber-Aspek vs Non-Aspek** (Total 3.016 Komentar).
@@ -22,7 +22,7 @@ Melakukan analisis eksploratif mendalam terhadap dataset terlabel 100% Gold Stan
 4. **Analisis Komentar Multi-Aspek** (Ko-eksistensi & Overlap antar aspek).
 5. **Distribusi Panjang Teks** (Karakter & Jumlah Kata per Aspek & Sentimen).
 6. **Visualisasi Kata Dominan (WordClouds)** untuk Setiap Aspek (dengan Filtering Stopwords).
-7. **Verifikasi Keseimbangan Stratified Dataset Split** (Train 70%, Val 15%, Test 15%).
+7. **Verifikasi Keseimbangan Stratified Dataset Split** (Train 70% & Val 30%).
 """))
 
     # Cell 1: Imports & Setup
@@ -51,7 +51,6 @@ master_path = '../data/interim/master_labeled_comments.csv'
 valid_path = '../data/interim/valid_labeled_comments.csv'
 train_path = '../data/processed/train.csv'
 val_path = '../data/processed/val.csv'
-test_path = '../data/processed/test.csv'
 
 # Fallback ke path relatif lokal jika dijalankan dari root
 if not os.path.exists(master_path):
@@ -59,19 +58,16 @@ if not os.path.exists(master_path):
     valid_path = 'data/interim/valid_labeled_comments.csv'
     train_path = 'data/processed/train.csv'
     val_path = 'data/processed/val.csv'
-    test_path = 'data/processed/test.csv'
 
 df_master = pd.read_csv(master_path)
 df_valid = pd.read_csv(valid_path)
 df_train = pd.read_csv(train_path)
 df_val = pd.read_csv(val_path)
-df_test = pd.read_csv(test_path)
 
 print(f"Master Dataset Loaded  : {len(df_master)} komentar")
-print(f"Valid Dataset Loaded   : {len(df_valid)} komentar (Ber-Aspek 100% Gold Standard)")
+print(f"Valid Dataset Loaded   : {len(df_valid)} komentar (100% Pure Human Gold Standard)")
 print(f"Train Dataset Loaded   : {len(df_train)} komentar (70%)")
-print(f"Val Dataset Loaded     : {len(df_val)} komentar (15%)")
-print(f"Test Dataset Loaded    : {len(df_test)} komentar (15%)")
+print(f"Val Dataset Loaded     : {len(df_val)} komentar (30%)")
 """))
 
     # Cell 3: Graph 1 - Aspect Bearing vs Non Aspect
@@ -80,7 +76,7 @@ aspect_cols = ['infra_sentiment', 'ekonomi_sentiment', 'kualitas_sentiment', 'pu
 df_master['is_aspect_bearing'] = df_master[aspect_cols].notnull().any(axis=1)
 
 counts = df_master['is_aspect_bearing'].value_counts()
-labels = ['Non-Aspek (General/Spam)', 'Ber-Aspek (EV Domain)']
+labels = ['Non-Aspek (General/Spam)', 'Ber-Aspek (Pure Human Gold Standard)']
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 5))
 
@@ -125,7 +121,7 @@ plt.figure(figsize=(12, 6))
 palette = {'Positif': '#2ecc71', 'Netral': '#f1c40f', 'Negatif': '#e74c3c'}
 
 ax = sns.barplot(data=df_aspect_sent, x='Aspek', y='Jumlah', hue='Sentimen', palette=palette)
-plt.title(f'Distribusi Sentimen pada Setiap Aspek EV China ({len(df_valid)} Data Valid Gold Standard)', fontsize=14, fontweight='bold', pad=15)
+plt.title(f'Distribusi Sentimen per Aspek ({len(df_valid)} Data Pure Human Gold Standard)', fontsize=14, fontweight='bold', pad=15)
 plt.xlabel('Aspek Utama', fontsize=11, fontweight='bold')
 plt.ylabel('Jumlah Kemunculan Sentimen', fontsize=11, fontweight='bold')
 plt.legend(title='Sentimen', frameon=True)
@@ -175,7 +171,7 @@ for i, row in df_overall_sent.iterrows():
 plt.tight_layout()
 plt.show()
 
-print(f"TOTAL AKUMULASI LABEL SENTIMEN: {total_sentiments:,} Anotasi Label")
+print(f"TOTAL AKUMULASI LABEL SENTIMEN MURNI AUDIT MANUSIA: {total_sentiments:,} Anotasi Label")
 print(f"  - Netral  : {total_netral:,} label ({total_netral/total_sentiments*100:.1f}%)")
 print(f"  - Positif : {total_positif:,} label ({total_positif/total_sentiments*100:.1f}%)")
 print(f"  - Negatif : {total_negatif:,} label ({total_negatif/total_sentiments*100:.1f}%)")
@@ -277,8 +273,8 @@ plt.tight_layout()
 plt.show()
 """))
 
-    # Cell 9: Graph 6 - Train Val Test Split Balance Verification
-    cells.append(nbf.v4.new_code_cell("""# 6. Verifikasi Keseimbangan Distribusi Aspek & Sentimen pada Stratified Split (Train, Val, Test)
+    # Cell 9: Graph 6 - Train Val Split Balance Verification (70/30)
+    cells.append(nbf.v4.new_code_cell("""# 6. Verifikasi Keseimbangan Distribusi Aspek & Sentimen pada Stratified Split 70/30 (Train vs Val)
 def get_split_aspect_counts(df, split_name):
     row = {'Split': split_name}
     for col, name in aspect_names.items():
@@ -287,30 +283,28 @@ def get_split_aspect_counts(df, split_name):
 
 split_summary = pd.DataFrame([
     get_split_aspect_counts(df_train, f'Train ({len(df_train)})'),
-    get_split_aspect_counts(df_val, f'Val ({len(df_val)})'),
-    get_split_aspect_counts(df_test, f'Test ({len(df_test)})')
+    get_split_aspect_counts(df_val, f'Val ({len(df_val)})')
 ])
 
-print("Tabel Kemunculan Aspek pada Stratified Dataset Split:")
+print("Tabel Kemunculan Aspek pada Stratified Dataset Split (70/30):")
 print(split_summary.to_string(index=False))
 
-# Detail Distribusi Sentimen per Aspek pada Split
-print("\\nDetail Distribusi Sentimen per Split:")
+# Detail Distribusi Sentimen per Aspek pada Split 70/30
+print("\\nDetail Distribusi Sentimen per Split (Train 70% vs Val 30%):")
 for a_col, a_name in aspect_names.items():
     print(f"\\n[Aspek {a_name}]")
     df_s = pd.DataFrame({
-        'Train': df_train[a_col].value_counts(dropna=False),
-        'Val': df_val[a_col].value_counts(dropna=False),
-        'Test': df_test[a_col].value_counts(dropna=False)
+        'Train (70%)': df_train[a_col].value_counts(dropna=False),
+        'Val (30%)': df_val[a_col].value_counts(dropna=False)
     }).fillna(0).astype(int)
     print(df_s)
 
-# Visualization Plot Stacked Bar Split
+# Visualization Plot Bar Split
 split_melted = pd.melt(split_summary, id_vars=['Split'], var_name='Aspek', value_name='Jumlah')
 
-plt.figure(figsize=(11, 5))
-sns.barplot(data=split_melted, x='Aspek', y='Jumlah', hue='Split', palette='Set2')
-plt.title('Keseimbangan Proporsi Aspek pada Stratified Dataset Split (70/15/15)', fontsize=13, fontweight='bold', pad=15)
+plt.figure(figsize=(10, 5))
+sns.barplot(data=split_melted, x='Aspek', y='Jumlah', hue='Split', palette=['#3498db', '#e67e22'])
+plt.title('Keseimbangan Proporsi Aspek pada Stratified Split 70/30 (Train vs Val)', fontsize=13, fontweight='bold', pad=15)
 plt.ylabel('Jumlah Kemunculan Aspek', fontsize=11, fontweight='bold')
 plt.xlabel('Aspek Utama', fontsize=11, fontweight='bold')
 plt.legend(title='Dataset Split')
@@ -326,21 +320,21 @@ plt.show()
 """))
 
     # Cell 10: Summary & Key Insights Markdown
-    cells.append(nbf.v4.new_markdown_cell("""## 📌 Kesimpulan & Temuan Kunci EDA Dataset 100% Gold Standard
+    cells.append(nbf.v4.new_markdown_cell("""## 📌 Kesimpulan & Temuan Kunci EDA Dataset 100% Pure Human Gold Standard
 
-1. **Rasio Data Ber-Aspek:** Dari total **3.016 komentar**, sebanyak **1.206 komentar (40,0%)** merupakan komentar valid ber-aspek (*aspect-bearing comments*) yang diaudit 100% oleh manusia. Sisanya **1.810 komentar (60,0%)** adalah komentar umum non-otomotif/spam.
+1. **Rasio Data Ber-Aspek Murni Manusia:** Dari total **3.016 komentar**, sebanyak **954 komentar (31,6%)** merupakan komentar valid ber-aspek murni hasil audit manusia (*Pure Human Gold Standard*). Seluruh label mesin yang tidak diaudit telah dieliminasi secara total.
 2. **Akumulasi Distribusi Sentimen Keseluruhan:**
-   - Total terdapat **1.404 anotasi label sentimen** di seluruh aspek.
-   - **Netral  :** 551 label (39,2%)
-   - **Positif :** 461 label (32,8%)
-   - **Negatif :** 392 label (27,9%)
-   - *Keseimbangan Sentimen:* Distribusi ketiga kelas sentimen secara keseluruhan sangat berimbang (39% Netral, 33% Positif, 28% Negatif).
+   - Total terdapat **1.119 anotasi label sentimen** murni buatan manusia.
+   - **Netral  :** 451 label (40,3%)
+   - **Positif :** 441 label (39,4%)
+   - **Negatif :** 227 label (20,3%)
+   - *Keseimbangan Sentimen:* Distribusi sentimen manusia terbukti sangat berkualitas (40,3% Netral, 39,4% Positif, 20,3% Negatif).
 3. **Dominasi Aspek:** 
    - **Kualitas & Durabilitas** adalah aspek yang paling banyak didiskusikan (630 komentar), disusul **Ekonomi & Harga** (479 komentar).
    - **Purnajual** (172 komentar) dan **Infrastruktur** (123 komentar) merupakan aspek minoritas.
-4. **Validasi Stratified Split (70/15/15):** 
-   - Dataset latih `train.csv` (844 data), validasi `val.csv` (181 data), dan uji `test.csv` (181 data) telah terbagi secara **Stratified Multi-Aspect** sehingga setiap aspek dan sentimen memiliki representasi seimbang tanpa kebocoran data (*data leakage*).
-5. **Kesiapan Phase 3:** Dataset `train.csv`, `val.csv`, dan `test.csv` **siap 100%** untuk tahap pelatihan model diskriminatif (**IndoRoBERTa Classifier** vs **SahabatAI-8B Classifier** di Kaggle Notebook).
+4. **Validasi Stratified Split 70/30 (Train vs Val):** 
+   - Dataset latih `train.csv` (**667 data**) dan validasi `val.csv` (**287 data**) terbagi secara **Stratified Multi-Aspect 70:30** tanpa data leakage.
+5. **Kesiapan Phase 3:** Dataset `train.csv` (667) dan `val.csv` (287) **siap 100%** untuk tahap pelatihan model diskriminatif (**IndoRoBERTa Classifier** vs **SahabatAI-8B Classifier** di Kaggle Notebook).
 """))
 
     nb['cells'] = cells
