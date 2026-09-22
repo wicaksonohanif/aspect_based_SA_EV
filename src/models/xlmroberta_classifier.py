@@ -1,7 +1,7 @@
 """
-IndoRoBERTa Multi-Head Classification Model for ABSA
+XLM-RoBERTa Large Multi-Head Classification Model for ABSA
 Spec Compliance: specs/03_model_training.spec.md
-Model Backbone: indolem/indobert-base-uncased (110M Parameter Encoder)
+Model Backbone: xlm-roberta-large (550M Parameter Multilingual Encoder)
 """
 
 import torch
@@ -15,8 +15,7 @@ ASPECTS = ['infra', 'ekonomi', 'kualitas', 'purnajual']
 
 class FocalLoss(nn.Module):
     """
-    Multi-Class Focal Loss dengan gamma=1.5 untuk penyeimbangan sampel mayoritas (None)
-    dan pembobotan gradien sampel sentimen aktif.
+    Multi-Class Focal Loss dengan gamma=1.5 untuk penyeimbangan sampel mayoritas (None).
     """
     def __init__(self, alpha: torch.Tensor | None = None, gamma: float = 1.5):
         super().__init__()
@@ -37,15 +36,15 @@ class FocalLoss(nn.Module):
         return loss.mean()
 
 
-class IndoRoBERTaMultiHeadClassifier(nn.Module):
+class XLMRoBERTaMultiHeadClassifier(nn.Module):
     """
-    IndoRoBERTa Multi-Head Classifier dengan Concatenated CLS + Mean Pooling
-    dan 2-Layer GELU MLP Head (Linear -> GELU -> Dropout -> Linear).
+    XLM-RoBERTa-Large Multi-Head Classifier (550M Parameter Encoder) untuk ABSA.
+    Menggunakan Concatenated CLS + Mean Pooling (2048 dim) dan 4 Multi-Task GELU MLP Heads.
     """
 
     def __init__(
         self,
-        model_name: str = "indolem/indobert-base-uncased",
+        model_name: str = "xlm-roberta-large",
         num_classes: int = 4,
         dropout_prob: float = 0.1,
         aspects: list[str] | None = None,
@@ -57,13 +56,13 @@ class IndoRoBERTaMultiHeadClassifier(nn.Module):
         self.num_classes = num_classes
         self.focal_gamma = focal_gamma
 
-        # Base Transformer Encoder
+        # Base XLM-RoBERTa Large Transformer Encoder (550M)
         from transformers import AutoModel
         self.encoder = AutoModel.from_pretrained(model_name)
-        hidden_size = self.encoder.config.hidden_size
+        hidden_size = self.encoder.config.hidden_size  # 1024 for xlm-roberta-large
 
         # 4 Multi-Task Classification Heads (2-Layer MLP dengan GELU)
-        # Input hidden size x 2 (Concatenated CLS + Mean Pooling: 768 x 2 = 1536)
+        # Input hidden size x 2 (Concatenated CLS + Mean Pooling: 1024 x 2 = 2048)
         self.heads = nn.ModuleDict({
             aspect: nn.Sequential(
                 nn.Linear(hidden_size * 2, 256),
@@ -81,6 +80,9 @@ class IndoRoBERTaMultiHeadClassifier(nn.Module):
         labels: dict[str, torch.Tensor] | torch.Tensor | None = None,
         class_weights: dict[str, torch.Tensor] | None = None,
     ) -> dict[str, torch.Tensor]:
+        """
+        Forward pass melalui XLM-RoBERTa Large encoder dan 4 GELU MLP classification heads.
+        """
         outputs = self.encoder(input_ids=input_ids, attention_mask=attention_mask)
         last_hidden = outputs.last_hidden_state  # [batch_size, seq_len, hidden_size]
 
@@ -93,7 +95,7 @@ class IndoRoBERTaMultiHeadClassifier(nn.Module):
         sum_mask = torch.clamp(input_mask_expanded.sum(dim=1), min=1e-9)
         mean_pooled = sum_embeddings / sum_mask
 
-        # 3. Concatenate CLS + Mean Pooled Features [batch_size, hidden_size * 2]
+        # 3. Concatenate CLS + Mean Pooled Features [batch_size, 2048]
         pooled_features = torch.cat([cls_token, mean_pooled], dim=-1)
 
         logits = {}
@@ -126,4 +128,4 @@ class IndoRoBERTaMultiHeadClassifier(nn.Module):
 
 
 if __name__ == "__main__":
-    print("IndoRoBERTa Multi-Head Classifier with Focal Loss gamma=1.5 initialized successfully!")
+    print("XLM-RoBERTa Large Multi-Head Classifier initialized successfully!")

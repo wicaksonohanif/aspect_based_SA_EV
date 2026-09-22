@@ -1,5 +1,5 @@
 """
-Metrics Evaluator & Confusion Matrix Visualization Module for ABSA (Optimized with Dynamic Thresholding)
+Metrics Evaluator & Confusion Matrix Visualization Module for ABSA
 Spec Compliance: specs/03_model_training.spec.md
 Computes Accuracy, Precision, Recall, Macro/Weighted F1 (All-Class & Active-Sentiment), Exact Match Ratio,
 Smoothed Class Weights, and 4x4 Confusion Matrices per aspect.
@@ -25,7 +25,7 @@ def compute_aspect_class_weights(
     smooth_factor: float = 0.5,
 ) -> dict[str, torch.Tensor]:
     """
-    Menghitung smoothed loss class weights (menggunakan akar kuadrat dari balanced weights)
+    Menghitung smoothed loss class weights (akar kuadrat dari balanced weights)
     untuk mencegah gradient spike berlebih pada kelas minoritas.
     """
     weights_dict = {}
@@ -40,7 +40,7 @@ def compute_aspect_class_weights(
         raw_vals = df[col].fillna("none").astype(str).str.lower().map(LABEL2ID).fillna(0).astype(int).values
         raw_weights = compute_class_weight(class_weight="balanced", classes=classes, y=raw_vals)
 
-        # Smooth weights via power scaling (e.g. sqrt) and normalize mean to 1.0
+        # Smooth weights via power scaling (sqrt) and normalize mean to 1.0
         smoothed = np.power(raw_weights, smooth_factor)
         smoothed = smoothed / np.mean(smoothed)
 
@@ -49,9 +49,9 @@ def compute_aspect_class_weights(
     return weights_dict
 
 
-def predict_with_threshold(logits: torch.Tensor | np.ndarray, none_threshold: float = 0.40) -> np.ndarray:
+def predict_with_threshold(logits: torch.Tensor | np.ndarray, none_threshold: float = 0.50) -> np.ndarray:
     """
-    Prediksi label menggunakan Dynamic Decision Thresholding untuk kelas 'None' (index 0).
+    Prediksi label menggunakan Decision Thresholding untuk kelas 'None' (index 0).
     Jika P(None) > none_threshold, maka diprediksi 'None' (0).
     Jika P(None) <= none_threshold, maka diprediksi argmax dari kelas sentimen aktif [1: positif, 2: netral, 3: negatif].
     """
@@ -182,4 +182,4 @@ def plot_confusion_matrices(
 
 
 if __name__ == "__main__":
-    print("Optimized Metrics Evaluator module initialized successfully!")
+    print("Metrics Evaluator module updated successfully!")
