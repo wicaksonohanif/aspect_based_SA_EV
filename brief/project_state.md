@@ -1,75 +1,128 @@
-# project_state.md — Project Snapshot & Activity Log
+# 📌 PROJECT STATEMENT & CONTEXT HANDOFF: USB 2026
 
-- **Tanggal Sesi:** 22 September 2026
-- **Sesi:** Sesi 5 — Pemfilteran 100% Murni Audit Manusia (Pure Human Gold Standard 954 Komentar), Re-execution EDA Notebook 03, & Pembagian Dataset Stratified 70/30 (Train 667, Val 287)
-- **Status Proyek:** Phase 1 Selesai 100% (3.016 Komentar Mentah Unik) & Phase 2 Selesai 100% (Pure Gold Standard 954 Komentar Valid Ber-aspek di `data/processed/`)
+### **Judul Proyek**
+**Aspect-Based Sentiment Analysis (ABSA) Mobil Listrik (EV) China di Indonesia Menggunakan Arsitektur Discriminative Encoder (IndoRoBERTa vs. XLM-RoBERTa)**
 
----
-
-## 📌 Ringkasan Aktivitas yang Telah Diselesaikan (22 September 2026)
-
-### 1. Ekstraksi 100% Murni Audit Manusia (Pure Human Gold Standard)
-- Mengeliminasi seluruh label mesin (*Rule-Based & Gemini API*) yang kolom human-nya tidak diisi oleh pengguna.
-- **Hasil Pemfilteran Murni Manusia:**
-  - **954 komentar valid ber-aspek** murni 100% hasil audit manusia (*Human-Audit-GoldStandard*).
-  - Berkas master tersimpan di `data/interim/master_labeled_comments.csv` (3.016 baris) dan `data/interim/valid_labeled_comments.csv` (**954 komentar murni audit manusia**).
-
-### 2. Pembagian Dataset Final 70/30 (Train vs Val Stratified Split)
-- Menjalankan `DatasetSplitter.split_dataset()` pada `data/interim/valid_labeled_comments.csv` dengan rasio **70% Train** vs **30% Validation** (Stratified Multi-Aspect Split, `random_state=42`).
-- **Hasil Akhir Pembagian Dataset (`data/processed/`):**
-  - **Train Set (70%):** 667 baris -> `data/processed/train.csv`
-  - **Val Set (30%):** 287 baris -> `data/processed/val.csv`
-- **Distribusi Sentimen per Aspek (954 dataset Pure Human Gold Standard):**
-  - **Infra:** 98 label (37 netral, 33 negatif, 28 positif)
-  - **Ekonomi:** 433 label (181 positif, 137 netral, 59 negatif)
-  - **Kualitas:** 527 label (218 positif, 208 negatif, 101 netral)
-  - **Purnajual:** 141 label (77 negatif, 52 netral, 12 positif)
-
-### 3. Pembaruan Notebook EDA 03 (`notebooks/03_eda_labeled_dataset.ipynb`)
-- Re-eksekusi notebook EDA 03 dengan 6 grafik visualisasi lengkap yang diperbarui menggunakan 100% data Pure Human Gold Standard 954 komentar.
+- **Lokasi Workspace:** `C:\Users\Wicaksono Hanif\Desktop\Koding\deep_learning\usb_2026`
+- **Domain:** Natural Language Processing (NLP) / Deep Learning / Aspect-Based Sentiment Analysis.
+- **Sumber Data:** Komentar YouTube warganet Indonesia mengenai mobil listrik pabrikan China (BYD, Wuling, Chery, Neta, Seres, dll).
 
 ---
 
-## 📂 Status Artefak Proyek Currently Active
+## 1. 🎯 Ringkasan Tujuan & Taksonomi Proyek
 
-| Artefak / File | Status | Keterangan |
-|---|---|---|
-| `brief/PRD.md` | Active | Reference PRD |
-| `brief/AGENTS.md` | Active | Directives & Guardrails |
-| `brief/project_state.md` | Updated | Snapshot Sesi 5 (22 Sep 2026 - Pure Gold Standard 70/30) |
-| `specs/01_data_extraction.spec.md` | Approved | Data Extraction Spec |
-| `specs/02_preprocessing_labeling.spec.md` | Approved | Preprocessing & Gemini API Hybrid Spec |
-| `specs/03_model_training.spec.md` | Approved | Model Training Spec (IndoRoBERTa vs SahabatAI Discriminative Classifiers) |
-| `data/raw/yt_comments_all_combined.csv` | Completed | 3.016 Unique Raw Comments |
-| `data/interim/cleaned_comments_all.csv` | Completed | 3.016 Cleaned Comments |
-| `data/interim/auto_labeled_comments_all.csv` | Completed | 3.016 Auto-Labeled Comments |
-| `data/interim/human_audit_sample.xlsx` | Audited | 603 Sample Comments Audited by Human |
-| `data/interim/human_audit_remaining.xlsx` | Audited | 2.413 Remaining Comments Audited by Human |
-| `data/interim/master_labeled_comments.csv` | Completed | 3.016 Master Comments (Pure Human Gold Standard Applied) |
-| `data/interim/valid_labeled_comments.csv` | Completed | 954 Pure Human Gold Standard Aspect Comments |
-| `data/processed/train.csv` | Completed | 667 Train Comments (70%) |
-| `data/processed/val.csv` | Completed | 287 Val Comments (30%) |
-| `data/slang_dict.json` | Completed | Automotive Slang Dictionary |
-| `src/preprocessing/text_cleaner.py` | Verified | Text Cleaning Module |
-| `src/labeling/gemini_labeler.py` | Verified | Google Gemini API Structured JSON Labeler |
-| `src/labeling/weak_supervision.py` | Verified | Hybrid Cascade Weak Supervision Engine |
-| `src/labeling/eval_kappa.py` | Verified | Cohen's Kappa & Audit Generator |
-| `src/labeling/dataset_splitter.py` | Verified | 70/30 Stratified Dataset Splitter |
-| `notebooks/01_eda_raw_comments.ipynb` | Verified | EDA Raw Comments Notebook |
-| `notebooks/02_eda_cleaned_comments.ipynb` | Verified | EDA Cleaned Comments Notebook |
-| `notebooks/03_eda_labeled_dataset.ipynb` | Verified | EDA Pure Human Gold Standard Notebook (Executed) |
-| `.env` & `.env.example` | Updated | Configured with YOUTUBE_API_KEY & GEMINI_API_KEY |
-| `README.md` | Active | Contributor Overview |
+Proyek ini bertujuan membangun pipeline end-to-end klasifikasi sentimen berbasis 4 aspek otomotif EV secara multi-task (4 pasang target klasifikasi per komentar):
+
+1. **4 Aspek Strategis (`infra`, `ekonomi`, `kualitas`, `purnajual`):**
+   - `infra`: SPKLU, charging station, jarak tempuh, durasi pengisian daya.
+   - `ekonomi`: Harga kendaraan, pajak, subsidi, depresiasi / nilai jual kembali (*resale value*).
+   - `kualitas`: Quality control/build quality, suspensi, baterai LFP/Blade, fitur ADAS, interior/eksterior.
+   - `purnajual`: Dealer resmi, layanan servis, ketersediaan & indent suku cadang, garansi.
+2. **4 Polaritas Kelas per Aspek:**
+   - `0`: `None` (Aspek tidak dibahas)
+   - `1`: `positif` (Sentimen Positif)
+   - `2`: `netral` (Sentimen Netral)
+   - `3`: `negatif` (Sentimen Negatif)
 
 ---
 
-## 🎯 Langkah Selanjutnya (Next Actions - Phase 3)
+## 2. 📂 Struktur Repositori & Modul Kode
 
-1. **Pembuatan Script PyTorch Multi-Head Classifier:**
-   - Membangun `src/models/indoroberta_classifier.py` dan `src/models/sahabatai_classifier.py`.
-2. **Pembuatan Kaggle Notebook 04:**
-   - Menyusun `notebooks/04_kaggle_training_indoroberta_vs_sahabatai.ipynb` yang siap di-upload ke Kaggle Notebook dengan GPU T4.
-3. **Pelatihan & Evaluasi Model 70/30:**
-   - Melatih model pada `train.csv` (667 baris) dan menguji/memvalidasi pada `val.csv` (287 baris).
+```
+usb_2026/
+├── data/
+│   ├── raw/                       # Komentar mentah YouTube (yt_comments_all_combined.csv)
+│   ├── processed/                 # Dataset 100% Pure Human Gold Standard
+│   │   ├── train.csv              # 667 data latih (70%)
+│   │   └── val.csv                # 287 data validasi/uji (30%)
+├── specs/                         # Spesifikasi Teknis Formal
+│   ├── 01_data_extraction.spec.md # Spec ekstraksi YouTube API v3
+│   ├── 02_preprocessing_labeling.spec.md # Spec cleaning & weak supervision
+│   └── 03_model_training.spec.md  # Spec arsitektur & benchmark model
+├── src/
+│   ├── extraction/
+│   │   └── extractor.py           # Class YouTubeCommentExtractor (Regex URL Parser, PII Hashing SHA-256)
+│   ├── preprocessing/
+│   │   └── text_cleaner.py        # Normalisasi slang otomotif, repeat reduction, noise clean
+│   ├── labeling/
+│   │   ├── gemini_labeler.py      # Structured JSON Output via Google Gemini API
+│   │   ├── weak_supervision.py    # Hybrid cascade engine (Rule-based + Gemini API)
+│   │   ├── eval_kappa.py          # Evaluator statistik Cohen's Kappa (κ)
+│   │   └── dataset_splitter.py    # Stratified dataset splitter (Zero leakage)
+│   └── models/
+│       ├── indoroberta_classifier.py # IndoRoBERTa-base (110M) Multi-Head GELU MLP
+│       ├── xlmroberta_classifier.py  # XLM-RoBERTa-large (550M) Multi-Head GELU MLP
+│       ├── sahabatai_classifier.py   # Baseline model / comparative wrapper
+│       └── metrics_evaluator.py      # Multi-aspect metrics calculator & confusion matrix
+├── notebooks/
+│   ├── 01_eda_raw_comments.ipynb
+│   ├── 02_eda_cleaned_comments.ipynb
+│   ├── 03_eda_labeled_dataset.ipynb
+│   └── 04_kaggle_training_indoroberta_vs_xlmroberta.ipynb # Notebook eksekusi Kaggle GPU
+├── outputs/
+│   └── iter-01/                   # Hasil evaluasi benchmark iterasi 01 (JSON, CSV, CM)
+└── journal/                       # Berkas penyusunan paper/jurnal (USB_2026.csv, audit xlsx)
+```
 
+---
 
+## 3. 🚀 Pekerjaan yang Telah Selesai (Fase 1 hingga Fase 3)
+
+### **Fase 1: Data Extraction & PII Guardrails**
+- Membangun modul `src/extraction/extractor.py` berbasis YouTube Data API v3 resmi.
+- Fitur auto URL parser (mendukung format standard, short `youtu.be`, shorts, embed, hingga raw video ID).
+- Penerapan **Strict PII Masking** (`user_id_hash` via SHA-256) untuk perlindungan privasi warganet.
+- Berhasil mengumpulkan >3.000 komentar mentah dari video ulasan EV China.
+
+### **Fase 2: Preprocessing, Weak Supervision & Dataset Gold Standard**
+- Membangun `src/preprocessing/text_cleaner.py` beserta kamus slang otomotif (`data/slang_dict.json`) untuk menormalisasi istilah informal (seperti *SPKLU, mobkas, ngecas, batre, resale*).
+- Membangun Hybrid Cascade Engine (`src/labeling/weak_supervision.py`):
+  - *Step 1:* Rule-based local matcher (0 API calls, instan).
+  - *Step 2:* Google Gemini API (`gemini-1.5-flash`) dengan Structured JSON Output untuk teks ambigu/sarkasme.
+- Mengirim sampel audit terstratifikasi (954 komentar) ke manusia, menghasilkan **100% Pure Human Gold Standard Dataset**.
+- Menjalankan pembagian dataset tanpa kebocoran data (*zero leakage*): **Train set (667 baris / 70%)** dan **Val set (30% / 287 baris)**.
+
+### **Fase 3: Model Benchmark (IndoRoBERTa-base vs XLM-RoBERTa-large)**
+- **Spesifikasi Model & Head:**
+  - **IndoRoBERTa-base** (`indolem/indobert-base-uncased`, 110M params): Monolingual Encoder.
+  - **XLM-RoBERTa-large** (`xlm-roberta-large`, 550M params): Multilingual Encoder.
+  - **Head:** Concatenation `[CLS] + Mean Pooling` $\rightarrow$ 4 x GELU MLP Multi-Task Heads (`Linear -> GELU -> Dropout -> Linear`).
+- **Strategi Imbalance & Loss:**
+  - Multi-Aspect Focal Loss ($\gamma = 1.5$) + Smoothed Class Weights ($\sqrt{w}$).
+  - Aspect-Specific Decision Thresholding ($\theta_{\text{purnajual}}=0.35$, $\theta_{\text{infra}}=0.40$, $\theta_{\text{ekonomi}}=0.50$, $\theta_{\text{kualitas}}=0.50$).
+  - Targeted Class Alpha Scaling ($\alpha_{\text{purnajual, positif}} = 2.5\times$, $\alpha_{\text{infra, positif}} = 1.8\times$).
+- **Lingkungan Eksekusi:** Kaggle Notebooks (NVIDIA T4 GPU 16GB VRAM, Full Fine-Tuning 20 Epochs, tanpa kuantisasi 4-bit).
+
+---
+
+## 4. 📊 Hasil Benchmark Terkini (Iterasi 01 - Validation Set: 287 Data Uji)
+
+Hasil evaluasi pada `outputs/iter-01/model_comparison_metrics.json`:
+
+| Metrik Evaluasi | IndoRoBERTa-base (110M) | XLM-RoBERTa-large (550M) | Selisih / Keunggulan |
+|---|---|---|---|
+| **Overall Mean Accuracy** | 80.75% | **85.45%** | **+4.70%** (XLM-RoBERTa unggul) |
+| **Mean Macro F1 (All-Class)** | 58.93% | **62.92%** | **+3.99%** (XLM-RoBERTa unggul) |
+| **Mean Macro F1 (Active Sentiment)** | 48.57% | **52.81%** | **+4.24%** (XLM-RoBERTa unggul) |
+| **Exact Match Ratio (Subset Acc.)** | 44.95% | **55.40%** | **+10.45%** (XLM-RoBERTa unggul) |
+
+### Detail Per-Aspek (Macro F1 Active Sentiment / Accuracy):
+- **Infra:** IndoRoBERTa (41.01% F1 / 89.90% Acc) vs **XLM-RoBERTa (49.58% F1 / 91.64% Acc)**
+- **Ekonomi:** IndoRoBERTa (47.28% F1 / 74.56% Acc) vs **XLM-RoBERTa (61.38% F1 / 81.53% Acc)**
+- **Kualitas:** IndoRoBERTa (57.97% F1 / 70.73% Acc) vs **XLM-RoBERTa (65.36% F1 / 78.40% Acc)**
+- **Purnajual:** **IndoRoBERTa (48.00% F1 / 87.80% Acc)** vs XLM-RoBERTa (34.94% F1 / 90.24% Acc)
+
+---
+
+## 5. 🎯 Rencana Langkah Selanjutnya (Roadmap Agent Baru)
+
+Saat memulai pada chat baru, instruksikan agen AI baru untuk melanjutkan tugas berikut:
+
+1. **Iterasi 02 Optimization Strategy (Augmentasi Data Teks Minoritas Kontekstual):**
+   - Menerapkan augmentasi teks kontekstual (Synonym replacement + Context-preserving paraphrasing) khusus pada **Train Set (`train.csv`)** untuk kelas minoritas ekstrem (`purnajual positif` dan `infra positif`) sesuai spesifikasi `specs/03_model_training.spec.md` Bagian 3.4.
+   - Menjaga Validation Set (`val.csv`) **100% murni data asli manusia** untuk pengujian fair.
+2. **Re-run & Evaluation di Kaggle:**
+   - Menjalankan kembali eksperimen Iterasi 02 pada Kaggle Notebook (`notebooks/04_kaggle_training_indoroberta_vs_xlmroberta.ipynb`).
+   - Menganalisis apakah augmentasi meningkatkan Active Macro F1 pada aspek `purnajual` dan `infra`.
+3. **Penyusunan Paper/Draf Jurnal:**
+   - Menyusun analisis hasil eksperimen dan confusion matrix ke dalam draf publikasi penelitian pada folder `journal/`.
