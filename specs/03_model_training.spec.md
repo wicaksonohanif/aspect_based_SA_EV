@@ -2,11 +2,11 @@
 
 - **Spec ID:** SPEC-03
 - **Title:** Phase 3 — Multi-Aspect Sentiment Analysis 5-Fold Stratified Cross-Validation Comparative Benchmark & Optimization
-- **Status:** Approved / Finalized Specification (v5 - 5-Fold CV & Expanded GELU MLP Head)
+- **Status:** Approved / Finalized Specification (v6 - Single Best Model Disk Storage Safeguard)
 - **Author:** Antigravity AI & Wicaksono Hanif
 - **Target Models:** IndoRoBERTa-base (110M Monolingual Baseline) vs. XLM-RoBERTa-large (550M Multilingual Target)
 - **Execution Environment:** Kaggle Notebooks (NVIDIA T4 GPU 16GB VRAM, $0 Cost)
-- **Constraint:** 100% Pure Human Gold Standard (954 Komentar), TANPA Augmentasi Data, Discriminative Encoder Mode Only.
+- **Constraint:** 100% Pure Human Gold Standard (954 Komentar), TANPA Augmentasi Data, Discriminative Encoder Mode Only, Single Best Model Storage Protection.
 
 ---
 
@@ -15,30 +15,32 @@
 Spesifikasi ini mengatur perancangan, pelatihan, dan evaluasi ilmiah komparatif berbasis **5-Fold Stratified Cross-Validation (5-Fold CV)** antara dua arsitektur kecerdasan buatan berbasis **Model Diskriminatif (*Discriminative Encoder Models*)** untuk **Aspect-Based Sentiment Analysis (ABSA)** pada komentar YouTube mobil listrik (EV) China di Indonesia:
 
 1. **Model 1 (Monolingual Base Baseline):** **IndoRoBERTa-base** (`indolem/indobert-base-uncased`, 110M Parameter) menggunakan arsitektur *Concatenated CLS + Mean Pooling* dengan **2-Layer GELU MLP Multi-Head Classifier** (Full Fine-Tuning 20 Epochs, Evaluasi 5-Fold CV).
-2. **Model 2 (Multilingual Large Primary Target):** **XLM-RoBERTa-large** (`xlm-roberta-large`, 550M Parameter) menggunakan arsitektur *Concatenated CLS + Mean Pooling* dengan **Expanded 2-Layer GELU MLP Multi-Head Classifier + LayerNorm (`2048 -> 512 -> 4`)** (Full Fine-Tuning 20 Epochs, Evaluasi 5-Fold CV & 5-Fold Ensemble Voting).
+2. **Model 2 (Multilingual Large Primary Target):** **XLM-RoBERTa-large** (`xlm-roberta-large`, 550M Parameter) menggunakan arsitektur *Concatenated CLS + Mean Pooling* dengan **Expanded 2-Layer GELU MLP Multi-Head Classifier + LayerNorm (`2048 -> 512 -> 4`)** (Full Fine-Tuning 20 Epochs, Evaluasi 5-Fold CV).
 
 Pengujian dilakukan pada dataset **100% Pure Human Gold Standard (954 Komentar Ter-audit)** tanpa augmentasi buatan, diproyeksikan ke 5 fold yang terbagi secara *stratified multi-aspect* tanpa kebocoran data (*zero data leakage*, `random_seed=42`).
 
 ---
 
-## 2. Metodologi Evaluasi 5-Fold Stratified Cross-Validation
+## 2. Metodologi Evaluasi 5-Fold Cross-Validation & Kaggle Disk Safeguard
 
-Untuk mengatasi keterbatasan jumlah sampel langka pada single split serta mengurangi volatilitas evaluasi, digunakan **5-Fold Stratified Cross-Validation**:
+Untuk mengatasi keterbatasan memori penyimpanan disk Kaggle (`/kaggle/working/` max 20 GB), diterapkan **Strategi Single Best Model Checkpoint**:
 
 ```
 [ Total 954 Komentar Pure Human Gold Standard ]
                         │
                         ▼ (Multi-Aspect Composite Stratification, Seed=42)
-  ├── Fold 1: Train (763) │ Val (191) ──► Model Checkpoint 1
-  ├── Fold 2: Train (763) │ Val (191) ──► Model Checkpoint 2
-  ├── Fold 3: Train (763) │ Val (191) ──► Model Checkpoint 3
-  ├── Fold 4: Train (763) │ Val (191) ──► Model Checkpoint 4
-  └── Fold 5: Train (763) │ Val (191) ──► Model Checkpoint 5
+  ├── Fold 1: Train (763) │ Val (191) ──► Evaluasi Fold 1
+  ├── Fold 2: Train (763) │ Val (191) ──► Evaluasi Fold 2
+  ├── Fold 3: Train (763) │ Val (191) ──► Evaluasi Fold 3 (Best Score!) ──► Simpan 1 Best Checkpoint
+  ├── Fold 4: Train (763) │ Val (191) ──► Evaluasi Fold 4
+  └── Fold 5: Train (763) │ Val (191) ──► Evaluasi Fold 5
                         │
                         ▼
     [ Final Evaluation: Mean ± Std Dev across 5 Folds ]
-    [ 5-Fold Ensemble Model for Streamlit Deployment ]
+    [ Single Best Model Saved: pytorch_model.bin (~2.2 GB) ]
 ```
+
+* **Keuntungan:** Menghemat memori disk Kaggle hingga **8.8 GB** (Hanya menyimpan 1 berkas `pytorch_model.bin` terbaik berukuran ~2.2 GB, bukan 5 berkas sekaligus berukuran 11 GB).
 
 ---
 
@@ -88,20 +90,15 @@ Pada setiap epoch pelatihan di Kaggle Notebook, sistem **wajib menampilkan log t
 4. `Val F1-Macro (All Classes)`
 5. `Val Accuracy`
 
-*Contoh Format Display Output:*
-```text
-Epoch  5/20 | Train Loss: 0.1245 | Val F1 (Active): 0.5621 | Val F1 (All): 0.6540 | Val Acc: 0.8620
-Epoch 10/20 | Train Loss: 0.0832 | Val F1 (Active): 0.6145 | Val F1 (All): 0.7012 | Val Acc: 0.8845
-```
-
 ---
 
-## 6. Metrik Evaluasi Akhir & Ensemble Deployment
+## 6. Metrik Evaluasi Akhir & Output Deployment
 
 Hasil akhir 5-Fold Cross-Validation dilaporkan dalam bentuk **Mean $\pm$ Standard Deviation**:
 - **Mean Macro F1 (Active Sentiments):** Rata-rata F1 Macro dari kelas `positif`, `netral`, `negatif`.
 - **Mean Macro F1 (All Classes):** Rata-rata F1 Macro dari 4 kelas (termasuk `None`).
 - **Mean Accuracy & Exact Match Ratio.**
 
-### 📦 Checkpoint Deployment Streamlit App
-Ke-5 checkpoint model dari 5 fold disiapkan untuk **5-Fold Ensemble Voting (Probability Averaging)** saat inferensi pada aplikasi web Streamlit (`app.py`).
+### 📦 Berkas Checkpoint Deployment Streamlit App
+- `indoroberta_absa_model.zip` (~440 MB - 1 Single Best Model)
+- `xlmroberta_absa_model.zip` (~2.1 GB - 1 Single Best Model)
