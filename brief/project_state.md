@@ -1,17 +1,19 @@
 # 📌 PROJECT STATEMENT & CONTEXT HANDOFF: USB 2026
 
 ### **Judul Proyek**
-**Aspect-Based Sentiment Analysis (ABSA) Mobil Listrik (EV) China di Indonesia Menggunakan Arsitektur Discriminative Encoder (IndoRoBERTa vs. XLM-RoBERTa)**
+**Aspect-Based Sentiment Analysis (ABSA) Multi-Task Mobil Listrik (EV) China di Indonesia Menggunakan Arsitektur Discriminative Encoder Berbasis 5-Fold Stratified Cross-Validation**
 
-- **Lokasi Workspace:** `C:\Users\Wicaksono Hanif\Desktop\Koding\deep_learning\usb_2026`
+- **Tim Peneliti / Author:** Wicaksono Hanif Supriyanto & Firman Pambudiansyah
+- **Lokasi Workspace:** `E:\Documents\aspect_based_SA_EV`
 - **Domain:** Natural Language Processing (NLP) / Deep Learning / Aspect-Based Sentiment Analysis.
 - **Sumber Data:** Komentar YouTube warganet Indonesia mengenai mobil listrik pabrikan China (BYD, Wuling, Chery, Neta, Seres, dll).
+- **Target Kompetisi:** Lomba Penambangan Data USB 2026 & Publikasi Jurnal Penelitian (Target: 5 Oktober 2026).
 
 ---
 
 ## 1. 🎯 Ringkasan Tujuan & Taksonomi Proyek
 
-Proyek ini bertujuan membangun pipeline end-to-end klasifikasi sentimen berbasis 4 aspek otomotif EV secara multi-task (4 pasang target klasifikasi per komentar):
+Membangun pipeline end-to-end klasifikasi sentimen multi-task 4 aspek otomotif EV (4 pasang target klasifikasi per komentar):
 
 1. **4 Aspek Strategis (`infra`, `ekonomi`, `kualitas`, `purnajual`):**
    - `infra`: SPKLU, charging station, jarak tempuh, durasi pengisian daya.
@@ -19,7 +21,7 @@ Proyek ini bertujuan membangun pipeline end-to-end klasifikasi sentimen berbasis
    - `kualitas`: Quality control/build quality, suspensi, baterai LFP/Blade, fitur ADAS, interior/eksterior.
    - `purnajual`: Dealer resmi, layanan servis, ketersediaan & indent suku cadang, garansi.
 2. **4 Polaritas Kelas per Aspek:**
-   - `0`: `None` (Aspek tidak dibahas)
+   - `0`: `None` (Aspek tidak dibahas / Imbalance mayoritas >80%)
    - `1`: `positif` (Sentimen Positif)
    - `2`: `netral` (Sentimen Netral)
    - `3`: `negatif` (Sentimen Negatif)
@@ -28,101 +30,105 @@ Proyek ini bertujuan membangun pipeline end-to-end klasifikasi sentimen berbasis
 
 ## 2. 📂 Struktur Repositori & Modul Kode
 
-```
-usb_2026/
+```text
+aspect_based_SA_EV/
+├── brief/
+│   ├── AGENTS.md                  # Directive & SOP agen AI
+│   ├── PRD.md                     # Product Requirements Document v2.0 (Approved)
+│   └── project_state.md           # Rangkuman status proyek & context handoff (Terkini)
+├── specs/
+│   ├── 01_data_extraction.spec.md # Kontrak YouTube API v3 & PII SHA-256
+│   ├── 02_preprocessing_labeling.spec.md # Kontrak normalisasi & Weak Supervision
+│   ├── 03_model_training.spec.md  # Kontrak 5-Fold Stratified CV Benchmark (v6)
+│   └── 04_deployment_streamlit_web_app.spec.md # Spec deployment dashboard web
 ├── data/
-│   ├── raw/                       # Komentar mentah YouTube (yt_comments_all_combined.csv)
-│   ├── processed/                 # Dataset 100% Pure Human Gold Standard
-│   │   ├── train.csv              # 667 data latih (70%)
-│   │   └── val.csv                # 287 data validasi/uji (30%)
-├── specs/                         # Spesifikasi Teknis Formal
-│   ├── 01_data_extraction.spec.md # Spec ekstraksi YouTube API v3
-│   ├── 02_preprocessing_labeling.spec.md # Spec cleaning & weak supervision
-│   └── 03_model_training.spec.md  # Spec arsitektur & benchmark model
+│   ├── raw/                       # Komentar mentah (yt_comments_all_combined.csv, read-only)
+│   ├── processed/                 # 100% Pure Human Gold Standard (954 data audit)
+│   │   ├── train.csv              # Data latih baseline split awal
+│   │   └── val.csv                # Data validasi baseline split awal
+│   └── slang_dict.json            # Kamus normalisasi istilah gaul/otomotif
 ├── src/
 │   ├── extraction/
-│   │   └── extractor.py           # Class YouTubeCommentExtractor (Regex URL Parser, PII Hashing SHA-256)
+│   │   └── extractor.py           # YouTubeCommentExtractor (Regex URL Parser, SHA-256)
 │   ├── preprocessing/
-│   │   └── text_cleaner.py        # Normalisasi slang otomotif, repeat reduction, noise clean
+│   │   └── text_cleaner.py        # Normalisasi slang otomotif, noise cleaner
 │   ├── labeling/
-│   │   ├── gemini_labeler.py      # Structured JSON Output via Google Gemini API
-│   │   ├── weak_supervision.py    # Hybrid cascade engine (Rule-based + Gemini API)
+│   │   ├── gemini_labeler.py      # Structured JSON Output via Gemini API
+│   │   ├── weak_supervision.py    # Hybrid cascade (Rule-based + Gemini)
 │   │   ├── eval_kappa.py          # Evaluator statistik Cohen's Kappa (κ)
 │   │   └── dataset_splitter.py    # Stratified dataset splitter (Zero leakage)
 │   └── models/
 │       ├── indoroberta_classifier.py # IndoRoBERTa-base (110M) Multi-Head GELU MLP
 │       ├── xlmroberta_classifier.py  # XLM-RoBERTa-large (550M) Multi-Head GELU MLP
-│       ├── sahabatai_classifier.py   # Baseline model / comparative wrapper
+│       ├── sahabatai_classifier.py   # Baseline model wrapper
 │       └── metrics_evaluator.py      # Multi-aspect metrics calculator & confusion matrix
 ├── notebooks/
 │   ├── 01_eda_raw_comments.ipynb
 │   ├── 02_eda_cleaned_comments.ipynb
 │   ├── 03_eda_labeled_dataset.ipynb
-│   └── 04_kaggle_training_indoroberta_vs_xlmroberta.ipynb # Notebook eksekusi Kaggle GPU
+│   └── 04_kaggle_training_indoroberta_vs_xlmroberta.ipynb # Notebook eksekusi Kaggle GPU (5-Fold CV)
 ├── outputs/
-│   └── iter-01/                   # Hasil evaluasi benchmark iterasi 01 (JSON, CSV, CM)
-└── journal/                       # Berkas penyusunan paper/jurnal (USB_2026.csv, audit xlsx)
+│   └── iter-01/                   # Hasil benchmark evaluasi split awal (JSON, CSV, CM)
+└── journal/                       # Berkas naskah publikasi (USB_2026.csv, audit remaining, proposal)
 ```
 
 ---
 
-## 3. 🚀 Pekerjaan yang Telah Selesai (Fase 1 hingga Fase 3)
+## 3. 🚀 Status Proyek Terkini & Guardrails Operasional
 
-### **Fase 1: Data Extraction & PII Guardrails**
-- Membangun modul `src/extraction/extractor.py` berbasis YouTube Data API v3 resmi.
-- Fitur auto URL parser (mendukung format standard, short `youtu.be`, shorts, embed, hingga raw video ID).
-- Penerapan **Strict PII Masking** (`user_id_hash` via SHA-256) untuk perlindungan privasi warganet.
-- Berhasil mengumpulkan >3.000 komentar mentah dari video ulasan EV China.
+### A. Capaian Fase Selesai
+1. **Fase 1: Ekstraksi Data Legal & Kepatuhan Etika**
+   - Akuisisi >3.000 komentar YouTube via API v3 resmi.
+   - Strict PII Anonymization via SHA-256 (`user_id_hash`).
+2. **Fase 2: Preprocessing, Weak Supervision & Dataset Gold Standard**
+   - Normalisasi slang otomotif lokal (`data/slang_dict.json`).
+   - Hybrid Weak Supervision (Rule-based local matcher + Gemini 1.5 Flash structured JSON).
+   - Validasi manusia menghasilkan **954 data Pure Human Gold Standard** ter-audit.
+   - Audit sisa data menerapkan protokol **Blind Review** (Schroeder et al., 2025) guna meniadakan bias sugesti LLM.
+3. **Fase 3: Transisi Benchmark 5-Fold Stratified Cross-Validation (SPEC-03 v6)**
+   - Standar pengujian beralih dari *single split* (70/30) ke **5-Fold Stratified Cross-Validation** pada total 954 sampel:
+     - Proporsi per fold: ~763 data latih (80%) dan ~191 data validasi (20%).
+     - Komposit stratifikasi 4 aspek simultan tanpa kebocoran data (*zero data leakage*, seed=42).
+   - Pelaporan metrik wajib menggunakan format ilmiah **Mean ± Standard Deviation**.
 
-### **Fase 2: Preprocessing, Weak Supervision & Dataset Gold Standard**
-- Membangun `src/preprocessing/text_cleaner.py` beserta kamus slang otomotif (`data/slang_dict.json`) untuk menormalisasi istilah informal (seperti *SPKLU, mobkas, ngecas, batre, resale*).
-- Membangun Hybrid Cascade Engine (`src/labeling/weak_supervision.py`):
-  - *Step 1:* Rule-based local matcher (0 API calls, instan).
-  - *Step 2:* Google Gemini API (`gemini-1.5-flash`) dengan Structured JSON Output untuk teks ambigu/sarkasme.
-- Mengirim sampel audit terstratifikasi (954 komentar) ke manusia, menghasilkan **100% Pure Human Gold Standard Dataset**.
-- Menjalankan pembagian dataset tanpa kebocoran data (*zero leakage*): **Train set (667 baris / 70%)** dan **Val set (30% / 287 baris)**.
-
-### **Fase 3: Model Benchmark (IndoRoBERTa-base vs XLM-RoBERTa-large)**
-- **Spesifikasi Model & Head:**
-  - **IndoRoBERTa-base** (`indolem/indobert-base-uncased`, 110M params): Monolingual Encoder.
-  - **XLM-RoBERTa-large** (`xlm-roberta-large`, 550M params): Multilingual Encoder.
-  - **Head:** Concatenation `[CLS] + Mean Pooling` $\rightarrow$ 4 x GELU MLP Multi-Task Heads (`Linear -> GELU -> Dropout -> Linear`).
-- **Strategi Imbalance & Loss:**
-  - Multi-Aspect Focal Loss ($\gamma = 1.5$) + Smoothed Class Weights ($\sqrt{w}$).
-  - Aspect-Specific Decision Thresholding ($\theta_{\text{purnajual}}=0.35$, $\theta_{\text{infra}}=0.40$, $\theta_{\text{ekonomi}}=0.50$, $\theta_{\text{kualitas}}=0.50$).
-  - Targeted Class Alpha Scaling ($\alpha_{\text{purnajual, positif}} = 2.5\times$, $\alpha_{\text{infra, positif}} = 1.8\times$).
-- **Lingkungan Eksekusi:** Kaggle Notebooks (NVIDIA T4 GPU 16GB VRAM, Full Fine-Tuning 20 Epochs, tanpa kuantisasi 4-bit).
+### B. Guardrails Teknis & Komputasi ($0 Infrastructure)
+1. **Kaggle Disk Space Safeguard (`/kaggle/working < 20 GB`):**
+   - Menerapkan **Single Best Model Checkpoint Safeguard**: hanya menyimpan 1 file bobot model terbaik (~2.2 GB) dari lipatan dengan skor evaluasi tertinggi, bukan seluruh 5 fold (menghemat >8.8 GB diska).
+2. **Streamlit Deployment Memory Guardrail (RAM Limit 1 GB):**
+   - Antarmuka web dasbor publik **hanya memuat IndoRoBERTa-base (110M / ~440 MB)** untuk menjamin stabilitas tanpa risiko *Out of Memory (OOM)* crash.
+   - Model **XLM-RoBERTa-large (550M / ~2.1 GB)** diposisikan khusus untuk komparasi benchmark pada publikasi riset jurnal ilmiah.
 
 ---
 
-## 4. 📊 Hasil Benchmark Terkini (Iterasi 01 - Validation Set: 287 Data Uji)
+## 4. 📊 Baseline Hasil Eksperimen Awal (Iterasi 01 - 287 Data Validasi)
 
-Hasil evaluasi pada `outputs/iter-01/model_comparison_metrics.json`:
+*Catatan: Ini adalah acuan benchmark awal sebelum eksekusi 5-Fold Stratified CV lengkap.*
 
-| Metrik Evaluasi | IndoRoBERTa-base (110M) | XLM-RoBERTa-large (550M) | Selisih / Keunggulan |
+| Metrik Evaluasi | IndoRoBERTa-base (110M) | XLM-RoBERTa-large (550M) | Selisih Performa |
 |---|---|---|---|
-| **Overall Mean Accuracy** | 80.75% | **85.45%** | **+4.70%** (XLM-RoBERTa unggul) |
-| **Mean Macro F1 (All-Class)** | 58.93% | **62.92%** | **+3.99%** (XLM-RoBERTa unggul) |
-| **Mean Macro F1 (Active Sentiment)** | 48.57% | **52.81%** | **+4.24%** (XLM-RoBERTa unggul) |
-| **Exact Match Ratio (Subset Acc.)** | 44.95% | **55.40%** | **+10.45%** (XLM-RoBERTa unggul) |
+| **Overall Mean Accuracy** | 80.75% | **85.45%** | +4.70% (XLM Unggul) |
+| **Mean Macro F1 (All-Class)** | 58.93% | **62.92%** | +3.99% (XLM Unggul) |
+| **Mean Macro F1 (Active Sentiment)** | 48.57% | **52.81%** | +4.24% (XLM Unggul) |
+| **Exact Match Ratio (Subset Acc.)** | 44.95% | **55.40%** | +10.45% (XLM Unggul) |
 
-### Detail Per-Aspek (Macro F1 Active Sentiment / Accuracy):
-- **Infra:** IndoRoBERTa (41.01% F1 / 89.90% Acc) vs **XLM-RoBERTa (49.58% F1 / 91.64% Acc)**
-- **Ekonomi:** IndoRoBERTa (47.28% F1 / 74.56% Acc) vs **XLM-RoBERTa (61.38% F1 / 81.53% Acc)**
-- **Kualitas:** IndoRoBERTa (57.97% F1 / 70.73% Acc) vs **XLM-RoBERTa (65.36% F1 / 78.40% Acc)**
-- **Purnajual:** **IndoRoBERTa (48.00% F1 / 87.80% Acc)** vs XLM-RoBERTa (34.94% F1 / 90.24% Acc)
+### Temuan Analitis per Aspek (Macro F1 Active Sentiment):
+- **Infra:** IndoRoBERTa 41.01% vs **XLM-RoBERTa 49.58%**
+- **Ekonomi:** IndoRoBERTa 47.28% vs **XLM-RoBERTa 61.38%**
+- **Kualitas:** IndoRoBERTa 57.97% vs **XLM-RoBERTa 65.36%**
+- **Purnajual:** **IndoRoBERTa 48.00%** vs XLM-RoBERTa 34.94% (XLM-RoBERTa mengalami degradasi pada kelas minoritas purnajual).
 
 ---
 
-## 5. 🎯 Rencana Langkah Selanjutnya (Roadmap Agent Baru)
+## 5. 🎯 Roadmap & Tindakan Selanjutnya (Sprint-Ready)
 
-Saat memulai pada chat baru, instruksikan agen AI baru untuk melanjutkan tugas berikut:
-
-1. **Iterasi 02 Optimization Strategy (Augmentasi Data Teks Minoritas Kontekstual):**
-   - Menerapkan augmentasi teks kontekstual (Synonym replacement + Context-preserving paraphrasing) khusus pada **Train Set (`train.csv`)** untuk kelas minoritas ekstrem (`purnajual positif` dan `infra positif`) sesuai spesifikasi `specs/03_model_training.spec.md` Bagian 3.4.
-   - Menjaga Validation Set (`val.csv`) **100% murni data asli manusia** untuk pengujian fair.
-2. **Re-run & Evaluation di Kaggle:**
-   - Menjalankan kembali eksperimen Iterasi 02 pada Kaggle Notebook (`notebooks/04_kaggle_training_indoroberta_vs_xlmroberta.ipynb`).
-   - Menganalisis apakah augmentasi meningkatkan Active Macro F1 pada aspek `purnajual` dan `infra`.
-3. **Penyusunan Paper/Draf Jurnal:**
-   - Menyusun analisis hasil eksperimen dan confusion matrix ke dalam draf publikasi penelitian pada folder `journal/`.
+1. **Eksekusi 5-Fold Stratified CV di Kaggle GPU:**
+   - Jalankan notebook `notebooks/04_kaggle_training_indoroberta_vs_xlmroberta.ipynb` menggunakan GPU NVIDIA T4.
+   - Pastikan log real-time menampilkan Train Loss, Val F1-Active, Val F1-All, dan Val Accuracy per epoch.
+   - Verifikasi bahwa hanya 1 model terbaik yang disimpan ke diska working.
+2. **Penyusunan Hasil & Pelaporan:**
+   - Ekstrak metrik rata-rata (Mean ± Std Dev) ke folder `outputs/iter-02/` (atau folder hasil 5-fold).
+3. **Pembangunan Streamlit Web Dashboard (`specs/04_deployment_streamlit_web_app.spec.md`):**
+   - Bangun antarmuka Streamlit berbasis model IndoRoBERTa-base dengan batas RAM < 1 GB.
+4. **Publikasi Model & Jurnal:**
+   - Unggah bobot IndoRoBERTa-base ke Hugging Face Hub.
+   - Finalisasi draf paper penelitian di `journal/proposal_usb_2026.md` dan salindia presentasi.
