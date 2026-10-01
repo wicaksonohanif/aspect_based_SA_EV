@@ -8,4 +8,5 @@ __pycache__/
 # Local data (prevent uploading raw extracted data if sensitive/large)
 # data/raw/
 
-./journal
+./journal/USB_2026
+./journal/human_audit_remaining.xlsx
