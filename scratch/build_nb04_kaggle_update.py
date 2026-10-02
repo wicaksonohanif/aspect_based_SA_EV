@@ -7,18 +7,19 @@ cells = [
         "cell_type": "markdown",
         "metadata": {},
         "source": [
-            "# 🚀 SPEC-03 (Kaggle T4 GPU Edition - Complete Evaluation & Learning Curves)\n",
+            "# 🚀 SPEC-03 (Kaggle T4 GPU Edition - XLM-RoBERTa Dedicated Training & Evaluation)\n",
             "## 📌 XLM-RoBERTa-large (550M) Multi-Head Classifier 5-Fold Stratified Cross-Validation\n",
             "\n",
             "- **Target Model:** **XLM-RoBERTa-large** (`xlm-roberta-large`, 550M Multilingual Target)\n",
             "- **Training Scheme:** 5-Fold Stratified Cross-Validation, 20 Epochs per fold\n",
             "- **Key Features & Enhancements:**\n",
-            "  1. **Learning Curves Analysis:** Melacak dan memvisualisasikan kurva *Train/Val Loss* serta *Val Macro F1* per epoch.\n",
-            "  2. **4x4 Confusion Matrices per Aspek:** Analisis matriks confusion komprehensif untuk 4 aspek (`Infrastruktur`, `Ekonomi`, `Kualitas`, `Purnajual`).\n",
-            "  3. **Single Best Model Disk Safeguard:** Hanya menyimpan **1 model terbaik (~2.2 GB)** dari seluruh fold untuk menghemat kuota disk Kaggle.\n",
-            "  4. **Real-Time Val F1 Progress:** Logging *Train Loss*, *Val Loss*, *Val F1 (Active)*, dan *Val Acc* secara otomatis per epoch.\n",
-            "  5. **Aspect-Customized Thresholding (${\\theta}_{\\text{aspect}}$):** `purnajual`: 0.35, `infra`: 0.40, `ekonomi`: 0.50, `kualitas`: 0.50.\n",
-            "  6. **Complete Evaluation Artifacts Package:** Menghasilkan file ZIP model, CSV/JSON metrik evaluasi, dan file gambar resolusi tinggi (`.png`) yang siap diunduh dari Kaggle Output.\n"
+            "  1. **Kaggle Environment Native Directories:** Pencarian otomatis dataset pada `/kaggle/input` (support `valid_labeled_comments.csv` maupun `train.csv` + `val.csv`).\n",
+            "  2. **Learning Curves Analysis:** Melacak dan memvisualisasikan kurva *Train/Val Loss* serta *Val Macro F1* per epoch.\n",
+            "  3. **4x4 Confusion Matrices per Aspek:** Analisis matriks konfusi komprehensif untuk 4 aspek (`Infrastruktur`, `Ekonomi`, `Kualitas`, `Purnajual`).\n",
+            "  4. **Single Best Model Disk Safeguard:** Hanya menyimpan **1 model terbaik (~2.2 GB)** dari seluruh fold untuk menghemat kuota disk Kaggle.\n",
+            "  5. **Real-Time Val F1 Progress:** Logging *Train Loss*, *Val Loss*, *Val F1 (Active)*, dan *Val Acc* secara otomatis per epoch.\n",
+            "  6. **Aspect-Customized Thresholding (${\\theta}_{\\text{aspect}}$):** `purnajual`: 0.35, `infra`: 0.40, `ekonomi`: 0.50, `kualitas`: 0.50.\n",
+            "  7. **Complete Evaluation Artifacts Package:** Menghasilkan file ZIP model, CSV/JSON metrik evaluasi, dan file gambar resolusi tinggi (`.png`) yang siap diunduh langsung dari Kaggle Output.\n"
         ]
     },
     # CELL 1: Section 1 Markdown
@@ -97,7 +98,7 @@ cells = [
         "cell_type": "markdown",
         "metadata": {},
         "source": [
-            "## 2. Load Full Gold Standard Dataset (1,377 Rows)\n"
+            "## 2. Load Full Gold Standard Dataset (Kaggle Input Auto-Detection)\n"
         ]
     },
     # CELL 4: Section 2 Code
@@ -108,6 +109,7 @@ cells = [
         "outputs": [],
         "source": [
             "# Search for dataset file (valid_labeled_comments.csv or train.csv + val.csv)\n",
+            "data_dir = None\n",
             "possible_paths = [\n",
             "    Path(\"/kaggle/input/indonesian-ev-absa-dataset\"),\n",
             "    Path(\"/kaggle/input\"),\n",
@@ -122,32 +124,39 @@ cells = [
             "    if p.exists():\n",
             "        if (p / \"valid_labeled_comments.csv\").exists():\n",
             "            full_df = pd.read_csv(p / \"valid_labeled_comments.csv\", encoding=\"utf-8-sig\")\n",
-            "            print(f\"✅ Memuat dataset dari: {(p / 'valid_labeled_comments.csv').resolve()}\")\n",
+            "            data_dir = p\n",
             "            break\n",
             "        elif (p / \"train.csv\").exists() and (p / \"val.csv\").exists():\n",
             "            df_tr = pd.read_csv(p / \"train.csv\", encoding=\"utf-8-sig\")\n",
             "            df_va = pd.read_csv(p / \"val.csv\", encoding=\"utf-8-sig\")\n",
             "            full_df = pd.concat([df_tr, df_va], ignore_index=True)\n",
-            "            print(f\"✅ Memuat dataset dari gabungan train.csv & val.csv di {p.resolve()}\")\n",
+            "            data_dir = p\n",
             "            break\n",
-            "        # Subdirectory search\n",
+            "        # Search subdirectories inside /kaggle/input\n",
             "        matches = list(p.glob(\"**/valid_labeled_comments.csv\"))\n",
             "        if matches:\n",
             "            full_df = pd.read_csv(matches[0], encoding=\"utf-8-sig\")\n",
-            "            print(f\"✅ Memuat dataset dari: {matches[0].resolve()}\")\n",
+            "            data_dir = matches[0].parent\n",
+            "            break\n",
+            "        matches_tr = list(p.glob(\"**/train.csv\"))\n",
+            "        if matches_tr:\n",
+            "            data_dir = matches_tr[0].parent\n",
+            "            df_tr = pd.read_csv(data_dir / \"train.csv\", encoding=\"utf-8-sig\")\n",
+            "            df_va = pd.read_csv(data_dir / \"val.csv\", encoding=\"utf-8-sig\")\n",
+            "            full_df = pd.concat([df_tr, df_va], ignore_index=True)\n",
             "            break\n",
             "\n",
             "if full_df is None:\n",
-            "    raise FileNotFoundError(\"❌ Tidak dapat menemukan berkas dataset 'valid_labeled_comments.csv'!\")\n",
+            "    raise FileNotFoundError(\"❌ Tidak dapat menemukan berkas dataset terlabel! Harap upload dataset ke Kaggle.\")\n",
             "\n",
-            "print(f\"📊 Total Pure Human Gold Standard Dataset: {len(full_df)} baris\")\n",
+            "print(f\"✅ Total Pure Human Gold Standard Dataset: {len(full_df)} baris (dari {data_dir.resolve()})\")\n",
             "\n",
             "# Create Stratification Key for Multi-Aspect Stratified K-Fold\n",
             "aspect_cols = [f\"{a}_sentiment\" for a in ASPECTS]\n",
             "full_df['strat_key'] = (\n",
-            "    full_df[aspect_cols[0]].fillna('none').astype(str) + '_'\t+\n",
-            "    full_df[aspect_cols[1]].fillna('none').astype(str) + '_'\t+\n",
-            "    full_df[aspect_cols[2]].fillna('none').astype(str) + '_'\t+\n",
+            "    full_df[aspect_cols[0]].fillna('none').astype(str) + '_' +\n",
+            "    full_df[aspect_cols[1]].fillna('none').astype(str) + '_' +\n",
+            "    full_df[aspect_cols[2]].fillna('none').astype(str) + '_' +\n",
             "    full_df[aspect_cols[3]].fillna('none').astype(str)\n",
             ")\n",
             "\n",
@@ -210,6 +219,8 @@ cells = [
             "            text_col = \"text_cleaned\"\n",
             "        elif \"text_original\" in df.columns:\n",
             "            text_col = \"text_original\"\n",
+            "        elif \"comment_text\" in df.columns:\n",
+            "            text_col = \"comment_text\"\n",
             "        else:\n",
             "            raise KeyError(f\"❌ Tidak dapat menemukan kolom teks di DataFrame.\")\n",
             "\n",
@@ -751,17 +762,25 @@ cells = [
     }
 ]
 
-notebook = {
+nb = {
     "cells": cells,
     "metadata": {
-        "language_info": {"name": "python"}
+        "kernelspec": {
+            "display_name": "Python 3 (CUDA)",
+            "language": "python",
+            "name": "python3"
+        },
+        "language_info": {
+            "name": "python",
+            "version": "3.10"
+        }
     },
     "nbformat": 4,
     "nbformat_minor": 2
 }
 
-target_file = "notebooks/04_kaggle_update.ipynb"
-with open(target_file, "w", encoding="utf-8") as f:
-    json.dump(notebook, f, indent=2, ensure_ascii=False)
+output_path = r"C:\Users\Wicaksono Hanif\Desktop\Koding\deep_learning\usb_2026\notebooks\04_kaggle_update.ipynb"
+with open(output_path, "w", encoding="utf-8") as f:
+    json.dump(nb, f, indent=2, ensure_ascii=False)
 
-print(f"Created notebook {target_file} successfully!")
+print(f"Successfully generated {output_path}")
