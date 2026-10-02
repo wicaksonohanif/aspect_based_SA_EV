@@ -9,7 +9,11 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from transformers import AutoModel, AutoTokenizer, BitsAndBytesConfig
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+try:
+    from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
+    HAS_PEFT = True
+except ImportError:
+    HAS_PEFT = False
 
 LABEL2ID = {'None': 0, 'none': 0, 'positif': 1, 'netral': 2, 'negatif': 3}
 ID2LABEL = {0: 'None', 1: 'positif', 2: 'netral', 3: 'negatif'}

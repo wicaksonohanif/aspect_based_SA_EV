@@ -5,8 +5,14 @@
 __pycache__/
 *.pyc
 
-# Local data (prevent uploading raw extracted data if sensitive/large)
-# data/raw/
+# Heavy model files & binary artifacts
+models/
+outputs/**/*.zip
+*.bin
+*.pt
+*.pth
+*.zip
 
+# Local data / Journal
 ./journal/USB_2026
 ./journal/human_audit_remaining.xlsx

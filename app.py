@@ -24,9 +24,24 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# Custom SaaS Styling (CSS)
+# Custom SaaS Styling (CSS with Poppins Font)
 st.markdown("""
 <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+
+    html, body, [class*="css"], .stApp {
+        font-family: 'Poppins', sans-serif !important;
+    }
+    
+    h1, h2, h3, h4, h5, h6, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {
+        font-family: 'Poppins', sans-serif !important;
+        font-weight: 700 !important;
+    }
+
+    .stMarkdown p, .stMarkdown ul, .stMarkdown ol, .stMarkdown li, [data-testid="stMarkdownContainer"] p {
+        font-family: 'Poppins', sans-serif !important;
+    }
+
     .main .block-container {
         padding-top: 1.5rem;
         padding-bottom: 2rem;
@@ -140,6 +155,9 @@ if "Pilihan 1" in mode_selection:
     st.sidebar.subheader("📂 Sumber Data Master")
     uploaded_file = st.sidebar.file_uploader("Unggah CSV Master Berlabel:", type=["csv", "xlsx"])
 
+    if "use_sample_mode1" not in st.session_state:
+        st.session_state["use_sample_mode1"] = False
+
     df_labeled = None
 
     if uploaded_file is not None:
@@ -152,8 +170,36 @@ if "Pilihan 1" in mode_selection:
         except Exception as e:
             st.sidebar.error(f"Gagal membaca file: {e}")
 
-    # Fallback to local default dataset
-    if df_labeled is None:
+    # Tampilan Awal: Minta user memasukkan data terlebih dahulu jika belum ada file diunggah
+    if df_labeled is None and not st.session_state["use_sample_mode1"]:
+        st.markdown("---")
+        st.info("👋 **Selamat Datang di Dasbor Analisis ABSA EV China!**\n\n"
+                "Silakan **unggah berkas CSV/XLSX berlabel Anda** pada panel sebelah kiri (sidebar) atau klik tombol sampel di bawah ini untuk memulai analisis dasbor eksekutif.")
+
+        col_box1, col_box2 = st.columns(2)
+        with col_box1:
+            st.markdown("""
+            <div style="background-color: #ffffff; border: 2px dashed #3498db; border-radius: 12px; padding: 25px; text-align: center;">
+                <h3 style="color: #1e3c72; margin-top: 0;">📂 Unggah Data Berlabel</h3>
+                <p style="color: #7f8c8d; font-size: 0.95rem;">Unggah file CSV/XLSX berlabel (hasil pelabelan model XLM-RoBERTa atau audit manusia).</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with col_box2:
+            st.markdown("""
+            <div style="background-color: #ffffff; border: 1px solid #e1e8ed; border-radius: 12px; padding: 25px; text-align: center;">
+                <h3 style="color: #1e3c72; margin-top: 0;">🧪 Gunakan Sampel Data</h3>
+                <p style="color: #7f8c8d; font-size: 0.95rem;">Uji coba langsung antarmuka dasbor dengan dataset sampel konsumen EV China default.</p>
+            </div>
+            """, unsafe_allow_html=True)
+            if st.button("🚀 Gunakan Sample Dataset Default (1,377 Komentar)"):
+                st.session_state["use_sample_mode1"] = True
+                st.rerun()
+
+        st.stop()
+
+    # Jika user memilih menggunakan sample data default
+    if df_labeled is None and st.session_state["use_sample_mode1"]:
         default_paths = [
             Path("data/interim/master_labeled_comments.csv"),
             Path("data/interim/valid_labeled_comments.csv"),
@@ -162,7 +208,7 @@ if "Pilihan 1" in mode_selection:
         for dp in default_paths:
             if dp.exists():
                 df_labeled = pd.read_csv(dp, encoding="utf-8-sig")
-                st.sidebar.info(f"Menggunakan dataset default: `{dp.name}` ({len(df_labeled):,} baris)")
+                st.sidebar.info(f"Menggunakan dataset sample: `{dp.name}` ({len(df_labeled):,} baris)")
                 break
 
     if df_labeled is None:
@@ -310,6 +356,7 @@ if "Pilihan 1" in mode_selection:
                         st.plotly_chart(fig_p, use_container_width=True)
 
                     with c2:
+                        st.markdown("**☁️ WordCloud Ringkasan Keseluruhan**")
                         texts = aspect_df['text_cleaned'].dropna().astype(str).tolist() if 'text_cleaned' in aspect_df.columns else aspect_df['text_original'].dropna().astype(str).tolist()
                         combined_text = " ".join(texts)
                         if len(combined_text.strip()) > 5:
@@ -318,8 +365,49 @@ if "Pilihan 1" in mode_selection:
                             ax_wc.imshow(wc, interpolation="bilinear")
                             ax_wc.axis("off")
                             st.pyplot(fig_wc)
+                            plt.close(fig_wc)
                         else:
                             st.info("Teks tidak cukup untuk membuat WordCloud.")
+
+                    st.markdown("---")
+                    st.markdown(f"#### ☁️ WordCloud Kata Kunci Per-Sentimen — {label_title}")
+                    st.caption("Membandingkan topik & kata kunci utama pada sentimen Positif, Netral, dan Negatif.")
+
+                    c_pos, c_neu, c_neg = st.columns(3)
+                    sentiment_configs = [
+                        ("positif", "Positif", "🟢", "Greens", "#2ecc71", c_pos),
+                        ("netral", "Netral", "🟡", "YlOrBr", "#f1c40f", c_neu),
+                        ("negatif", "Negatif", "🔴", "Reds", "#e74c3c", c_neg)
+                    ]
+
+                    for sent_code, sent_label, icon, cmap_name, text_color, col_obj in sentiment_configs:
+                        with col_obj:
+                            sub_df = aspect_df[aspect_df[col_name].astype(str).str.lower() == sent_code]
+                            count_val = len(sub_df)
+                            st.markdown(f"<h5 style='color:{text_color}; margin-bottom: 5px;'>{icon} {sent_label} <span style='font-size: 0.85rem; color: #7f8c8d;'>(N={count_val:,})</span></h5>", unsafe_allow_html=True)
+                            
+                            if count_val > 0:
+                                s_texts = sub_df['text_cleaned'].dropna().astype(str).tolist() if 'text_cleaned' in sub_df.columns else sub_df['text_original'].dropna().astype(str).tolist()
+                                s_combined = " ".join(s_texts)
+                                if len(s_combined.strip()) > 5:
+                                    s_wc = WordCloud(
+                                        width=400,
+                                        height=280,
+                                        background_color="white",
+                                        colormap=cmap_name,
+                                        max_words=60,
+                                        collocations=False,
+                                        stopwords=VISUALIZATION_STOPWORDS
+                                    ).generate(s_combined)
+                                    fig_swc, ax_swc = plt.subplots(figsize=(5, 3.5))
+                                    ax_swc.imshow(s_wc, interpolation="bilinear")
+                                    ax_swc.axis("off")
+                                    st.pyplot(fig_swc)
+                                    plt.close(fig_swc)
+                                else:
+                                    st.info(f"Teks tidak cukup untuk WordCloud {sent_label}.")
+                            else:
+                                st.info(f"Belum ada data sentimen {sent_label}.")
 
     # TAB 3: TOP LIKED COMMENTS
     with tab_toplikes:
@@ -386,7 +474,13 @@ if "Pilihan 1" in mode_selection:
 # ==============================================================================
 else:
     st.title("🤖 Inferensi & Pelabelan Otomatis XLM-RoBERTa")
-    st.markdown("Unggah komentar mentah hasil tarikan YouTube API (`yt_comments_raw.csv`) untuk menjalankan inferensi model XLM-RoBERTa PyTorch.")
+    st.markdown("Unggah komentar mentah hasil tarikan YouTube API (`yt_comments_raw.csv`) untuk menjalankan inferensi model XLM-RoBERTa PyTorch (`xlmroberta_absa_model.zip`).")
+
+    xlm_engine = get_xlm_engine()
+    if xlm_engine.is_weights_loaded:
+        st.success(f"⚡ **Inference Engine Ready:** XLM-RoBERTa Fine-Tuned Model Loaded | **Compute Device:** `{xlm_engine.device}`")
+    else:
+        st.warning(f"⚠️ **Inference Engine Warning:** XLM-RoBERTa Weights Not Loaded (Menggunakan Fallback Rule-Based Engine) | **Device:** `{xlm_engine.device}`")
 
     raw_file = st.file_uploader("Unggah Komentar Mentah Hasil Tarikan YouTube API (CSV):", type=["csv"])
 

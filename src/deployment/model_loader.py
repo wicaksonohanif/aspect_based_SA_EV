@@ -38,7 +38,7 @@ except ImportError:
 
 if HAS_TORCH:
     class XLMRoBERTaMultiHeadClassifier(nn.Module):
-        def __init__(self, model_name="xlm-roberta-base", num_classes=4, dropout_prob=0.1, aspects=ASPECTS):
+        def __init__(self, model_name="xlm-roberta-large", num_classes=4, dropout_prob=0.1, aspects=ASPECTS):
             super().__init__()
             self.aspects = aspects
             self.encoder = AutoModel.from_pretrained(model_name)
@@ -96,7 +96,7 @@ if HAS_TORCH:
 
 
 class XLMInferenceEngine:
-    def __init__(self, model_dir="models/xlmroberta_local_absa", model_name="xlm-roberta-base"):
+    def __init__(self, model_dir="models/xlmroberta_local_absa", model_name="xlm-roberta-large"):
         self.device = torch.device("cuda" if HAS_TORCH and torch.cuda.is_available() else "cpu") if HAS_TORCH else "cpu"
         self.model_dir = Path(model_dir)
         self.model_name = model_name
@@ -113,28 +113,52 @@ class XLMInferenceEngine:
 
     def _load_pytorch_pipeline(self):
         try:
-            weights_path = self.model_dir / "pytorch_model.bin"
-            if not weights_path.exists():
-                weights_path = Path("models/xlmroberta_absa/pytorch_model.bin")
+            project_root = Path(__file__).resolve().parent.parent.parent
+            candidate_paths = [
+                self.model_dir / "pytorch_model.bin",
+                project_root / "models/xlmroberta_local_absa/pytorch_model.bin",
+                project_root / "models/xlmroberta_absa/pytorch_model.bin",
+                project_root / "outputs/iter-03/pytorch_model.bin",
+                Path("models/xlmroberta_local_absa/pytorch_model.bin")
+            ]
+            weights_path = None
+            for p in candidate_paths:
+                if p.exists():
+                    weights_path = p
+                    break
 
-            if (self.model_dir / "tokenizer_config.json").exists():
-                self.tokenizer = AutoTokenizer.from_pretrained(str(self.model_dir))
+            if weights_path is None:
+                zip_path = project_root / "outputs/iter-03/xlmroberta_absa_model.zip"
+                if not zip_path.exists():
+                    zip_path = Path("outputs/iter-03/xlmroberta_absa_model.zip")
+                if zip_path.exists():
+                    import zipfile
+                    extract_dir = project_root / "models/xlmroberta_local_absa"
+                    extract_dir.mkdir(parents=True, exist_ok=True)
+                    print(f"[ModelLoader] Extracting model archive {zip_path} to {extract_dir}...")
+                    with zipfile.ZipFile(zip_path, "r") as z:
+                        z.extractall(extract_dir)
+                    weights_path = extract_dir / "pytorch_model.bin"
+
+            model_dir_to_use = weights_path.parent if weights_path else self.model_dir
+            if (model_dir_to_use / "tokenizer_config.json").exists():
+                self.tokenizer = AutoTokenizer.from_pretrained(str(model_dir_to_use))
             else:
                 self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
 
             self.model = XLMRoBERTaMultiHeadClassifier(model_name=self.model_name).to(self.device)
 
-            if weights_path.exists():
+            if weights_path and weights_path.exists():
                 state_dict = torch.load(weights_path, map_location=self.device)
                 self.model.load_state_dict(state_dict)
                 self.is_weights_loaded = True
-                print(f"[ModelLoader] Berhasil memuat PyTorch checkpoint dari {weights_path}")
+                print(f"[ModelLoader] Berhasil memuat PyTorch checkpoint XLM-RoBERTa dari {weights_path}")
             else:
-                print(f"[ModelLoader Warning] Weights bin belum tersedia. Menggunakan Rule-Based fallback / base model.")
+                print(f"[ModelLoader Warning] Weights bin belum tersedia. Menggunakan Rule-Based fallback.")
 
             self.model.eval()
         except Exception as e:
-            print(f"[ModelLoader Warning] PyTorch pipeline fallback ke Rule-Based Engine: {e}")
+            print(f"[ModelLoader Warning] Gagal memuat pipeline PyTorch: {e}")
 
     def predict_batch(self, texts, batch_size=16, progress_callback=None):
         all_results = {f"{asp}_sentiment": [] for asp in ASPECTS}
