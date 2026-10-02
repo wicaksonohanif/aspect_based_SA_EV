@@ -1,0 +1,2 @@
+Model,Mean Macro F1 (Active),Mean Macro F1 (All),Mean Accuracy
+XLM-RoBERTa-large Classifier (550M),0.5826 ± 0.0338,0.6666 ± 0.0264,0.8382 ± 0.0080

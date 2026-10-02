@@ -1,5 +1,6 @@
 import os
 import sys
+import io
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -16,43 +17,121 @@ sys.path.append(os.path.abspath("."))
 from src.deployment.model_loader import XLMInferenceEngine, ASPECTS
 from src.deployment.data_processor import DashboardDataProcessor, ASPECT_NAMES, STANDARD_COLUMNS
 
+def generate_excel_template():
+    buffer = io.BytesIO()
+    sample_data = [{
+        "comment_id": "c_sample_001",
+        "video_id": "v_sample_101",
+        "user_id_hash": "usr_abc123",
+        "text_original": "Mobil listrik ini harganya sangat terjangkau tapi build quality nya bagus banget.",
+        "like_count": 15,
+        "published_at": "2026-09-01 10:00:00",
+        "updated_at": "2026-09-01 10:00:00",
+        "extracted_at": "2026-09-02 12:00:00",
+        "text_cleaned": "mobil listrik ini harganya sangat terjangkau tapi build quality nya bagus banget",
+        "infra_sentiment": None,
+        "ekonomi_sentiment": "positif",
+        "kualitas_sentiment": "positif",
+        "purnajual_sentiment": None
+    }]
+    template_df = pd.DataFrame(sample_data, columns=STANDARD_COLUMNS)
+    with pd.ExcelWriter(buffer, engine='openpyxl') as writer:
+        template_df.to_excel(writer, index=False, sheet_name="Master_Template")
+    return buffer.getvalue()
+
 # Page Configuration
 st.set_page_config(
-    page_title="EV China ABSA Analytics Dashboard",
-    page_icon="🚗",
+    page_title="SentyBoard Analytics",
+    page_icon="📊",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Custom SaaS Styling (CSS with Poppins Font)
+# Custom Styling (Inter Font, Blue Gradient Sidebar Layout matching misc.md reference)
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
     html, body, [class*="css"], .stApp {
-        font-family: 'Poppins', sans-serif !important;
+        font-family: 'Inter', sans-serif !important;
     }
     
     h1, h2, h3, h4, h5, h6, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {
-        font-family: 'Poppins', sans-serif !important;
+        font-family: 'Inter', sans-serif !important;
         font-weight: 700 !important;
     }
 
     .stMarkdown p, .stMarkdown ul, .stMarkdown ol, .stMarkdown li, [data-testid="stMarkdownContainer"] p {
-        font-family: 'Poppins', sans-serif !important;
+        font-family: 'Inter', sans-serif !important;
     }
 
     .main .block-container {
         padding-top: 1.5rem;
         padding-bottom: 2rem;
     }
+
+    /* ---------- Sidebar Blue Gradient Layout (Referenced from misc.md) ---------- */
+    [data-testid="stSidebar"] {
+        background: linear-gradient(180deg, #123fb2 0%, #091459 100%) !important;
+    }
+
+    [data-testid="stSidebar"] * {
+        color: #FFFFFF !important;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    /* Hide radio circle dot */
+    [data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label > div:first-child {
+        display: none !important;
+    }
+
+    /* Pill-shaped radio menu options */
+    [data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label {
+        padding: 12px 20px !important;
+        border-radius: 25px !important;
+        border: 2px solid transparent !important; 
+        margin-bottom: 8px !important;
+        transition: all 0.3s ease !important;
+        cursor: pointer !important;
+        width: 100% !important;
+        background-color: transparent;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label:hover {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        transform: translateX(4px) !important;
+    }
+
+    [data-testid="stSidebar"] [data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) {
+        border: 2px solid #FFFFFF !important;
+        background-color: rgba(255, 255, 255, 0.25) !important;
+    }
+
+    /* White Logo Card at Top of Sidebar */
+    .sidebar-logo-card {
+        background-color: #FFFFFF;
+        border-radius: 20px;
+        padding: 12px 10px;
+        text-align: center;
+        margin-bottom: 25px;
+        box-shadow: 0px 4px 10px rgba(0,0,0,0.15);
+    }
+    .sidebar-logo-card h2 {
+        color: #1e3c72 !important;
+        margin: 0;
+        font-size: 24px;
+        font-weight: 800;
+    }
+
+    /* ---------- KPI Cards ---------- */
     .kpi-card {
-        background-color: #f8f9fa;
-        border-radius: 10px;
-        padding: 18px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        background-color: #ffffff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
         border-left: 5px solid #3498db;
-        margin-bottom: 10px;
+        margin-bottom: 12px;
     }
     .kpi-title {
         font-size: 0.85rem;
@@ -63,51 +142,54 @@ st.markdown("""
     }
     .kpi-value {
         font-size: 1.8rem;
-        font-weight: 700;
+        font-weight: 800;
         color: #2c3e50;
         margin-top: 5px;
     }
+
+    /* ---------- Header Banner Fallback ---------- */
     .banner-fallback {
         background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
         color: white;
         padding: 35px 25px;
-        border-radius: 12px;
+        border-radius: 14px;
         text-align: center;
         margin-bottom: 25px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.12);
     }
     .banner-title {
         font-size: 2.2rem;
         font-weight: 800;
         margin: 0;
-        letter-spacing: 1px;
+        letter-spacing: 0.5px;
     }
     .banner-subtitle {
         font-size: 1.05rem;
         opacity: 0.9;
         margin-top: 8px;
     }
+
+    /* ---------- Comment Cards ---------- */
     .comment-card {
         background-color: #ffffff;
         border: 1px solid #e1e8ed;
-        border-radius: 8px;
-        padding: 15px;
+        border-radius: 10px;
+        padding: 16px;
         margin-bottom: 12px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
     }
-    .badge-positif { background-color: #d4edda; color: #155724; padding: 3px 8px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
-    .badge-netral { background-color: #fff3cd; color: #856404; padding: 3px 8px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
-    .badge-negatif { background-color: #f8d7da; color: #721c24; padding: 3px 8px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
+    .badge-positif { background-color: #d4edda; color: #155724; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
+    .badge-netral { background-color: #fff3cd; color: #856404; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
+    .badge-negatif { background-color: #f8d7da; color: #721c24; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
 </style>
 """, unsafe_allow_html=True)
 
 
-# Cache Model & Processor Initialization for Streamlit Cloud Compatibility
+# Cache Model & Processor Initialization
 @st.cache_resource(show_spinner="Memuat Pipeline Model XLM-RoBERTa...")
 def get_xlm_engine():
     return XLMInferenceEngine()
 
-@st.cache_resource
 def get_data_processor():
     return DashboardDataProcessor()
 
@@ -118,7 +200,7 @@ processor = get_data_processor()
 def render_header_banner():
     banner_path = Path("assets/banner.jpg")
     if banner_path.exists():
-        st.image(str(banner_path), use_column_width=True)
+        st.image(str(banner_path), use_container_width=True)
     else:
         st.markdown("""
         <div class="banner-fallback">
@@ -130,90 +212,58 @@ def render_header_banner():
 render_header_banner()
 
 
-# 2. Main Navigation Mode Selection
-st.sidebar.title("🎛️ Navigasi Utama")
-mode_selection = st.sidebar.radio(
-    "Pilih Fitur Aplikasi:",
-    [
-        "📊 Pilihan 1: Analisis Data Berlabel (Executive Dashboard)",
-        "🤖 Pilihan 2: Lakukan Pelabelan Data (XLM-RoBERTa Inference Engine)"
-    ]
+# 2. Sidebar White Logo Card & 1-Word Navigation (Referenced from misc.md)
+st.sidebar.markdown('''
+<div class="sidebar-logo-card">
+    <h2>SentyBoard</h2>
+</div>
+''', unsafe_allow_html=True)
+
+nav_selection = st.sidebar.radio(
+    "",
+    ["ANALYTICS", "LABELING"],
+    index=0
 )
 
-st.sidebar.markdown("---")
-st.sidebar.info("💡 **Petunjuk Penggunaan:**\n- **Pilihan 1:** Tampilkan Dasbor SaaS Eksekutif dari data berlabel.\n- **Pilihan 2:** Labeli otomatis komentar mentah dari YouTube API dengan XLM-RoBERTa, lalu unduh hasilnya.")
-
-
 # ==============================================================================
-# MODE 1: ANALISIS DATA BERLABEL (EXECUTIVE DASHBOARD)
+# MODE 1: DASHBOARD (ANALISIS DATA BERLABEL)
 # ==============================================================================
-if "Pilihan 1" in mode_selection:
-    st.title("📊 Executive Dashboard — Analysis Data Berlabel")
-    st.markdown("Dasbor intelijen eksekutif untuk menganalisis persepsi konsumen terhadap 4 aspek kendaraan listrik (EV) China.")
+if nav_selection == "ANALYTICS":
+    st.title("Sentiment Analytics")
+    col_up_title, col_up_dl = st.columns([2.5, 1])
+    with col_up_title:
+        st.markdown("#### 📂 Unggah Data Master Berlabel (CSV / XLSX)")
+    with col_up_dl:
+        excel_template_bytes = generate_excel_template()
+        st.download_button(
+            label="📄 Unduh Template Format XLSX",
+            data=excel_template_bytes,
+            file_name="template_master_labeled_comments.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            use_container_width=True
+        )
 
-    # Data Source Selection
-    st.sidebar.subheader("📂 Sumber Data Master")
-    uploaded_file = st.sidebar.file_uploader("Unggah CSV Master Berlabel:", type=["csv", "xlsx"])
+    uploaded_file = st.file_uploader(
+        "Pilih file CSV atau XLSX master yang berisi label 4 aspek:",
+        type=["csv", "xlsx"],
+        key="mode1_main_uploader",
+        label_visibility="collapsed"
+    )
 
-    if "use_sample_mode1" not in st.session_state:
-        st.session_state["use_sample_mode1"] = False
-
-    df_labeled = None
-
-    if uploaded_file is not None:
-        try:
-            if uploaded_file.name.endswith(".xlsx"):
-                df_labeled = pd.read_excel(uploaded_file)
-            else:
-                df_labeled = pd.read_csv(uploaded_file, encoding="utf-8-sig")
-            st.sidebar.success(f"Berhasil memuat: {uploaded_file.name} ({len(df_labeled):,} baris)")
-        except Exception as e:
-            st.sidebar.error(f"Gagal membaca file: {e}")
-
-    # Tampilan Awal: Minta user memasukkan data terlebih dahulu jika belum ada file diunggah
-    if df_labeled is None and not st.session_state["use_sample_mode1"]:
-        st.markdown("---")
-        st.info("👋 **Selamat Datang di Dasbor Analisis ABSA EV China!**\n\n"
-                "Silakan **unggah berkas CSV/XLSX berlabel Anda** pada panel sebelah kiri (sidebar) atau klik tombol sampel di bawah ini untuk memulai analisis dasbor eksekutif.")
-
-        col_box1, col_box2 = st.columns(2)
-        with col_box1:
-            st.markdown("""
-            <div style="background-color: #ffffff; border: 2px dashed #3498db; border-radius: 12px; padding: 25px; text-align: center;">
-                <h3 style="color: #1e3c72; margin-top: 0;">📂 Unggah Data Berlabel</h3>
-                <p style="color: #7f8c8d; font-size: 0.95rem;">Unggah file CSV/XLSX berlabel (hasil pelabelan model XLM-RoBERTa atau audit manusia).</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-        with col_box2:
-            st.markdown("""
-            <div style="background-color: #ffffff; border: 1px solid #e1e8ed; border-radius: 12px; padding: 25px; text-align: center;">
-                <h3 style="color: #1e3c72; margin-top: 0;">🧪 Gunakan Sampel Data</h3>
-                <p style="color: #7f8c8d; font-size: 0.95rem;">Uji coba langsung antarmuka dasbor dengan dataset sampel konsumen EV China default.</p>
-            </div>
-            """, unsafe_allow_html=True)
-            if st.button("🚀 Gunakan Sample Dataset Default (1,377 Komentar)"):
-                st.session_state["use_sample_mode1"] = True
-                st.rerun()
-
+    if uploaded_file is None:
         st.stop()
 
-    # Jika user memilih menggunakan sample data default
-    if df_labeled is None and st.session_state["use_sample_mode1"]:
-        default_paths = [
-            Path("data/interim/master_labeled_comments.csv"),
-            Path("data/interim/valid_labeled_comments.csv"),
-            Path("data/processed/train.csv")
-        ]
-        for dp in default_paths:
-            if dp.exists():
-                df_labeled = pd.read_csv(dp, encoding="utf-8-sig")
-                st.sidebar.info(f"Menggunakan dataset sample: `{dp.name}` ({len(df_labeled):,} baris)")
-                break
-
-    if df_labeled is None:
-        st.error("❌ Dataset master berlabel tidak ditemukan. Silakan unggah berkas CSV master pada sidebar.")
+    try:
+        if uploaded_file.name.endswith(".xlsx"):
+            df_labeled = pd.read_excel(uploaded_file)
+        else:
+            df_labeled = pd.read_csv(uploaded_file, encoding="utf-8-sig")
+        st.success(f"Berhasil memuat berkas: `{uploaded_file.name}` ({len(df_labeled):,} baris data)")
+    except Exception as e:
+        st.error(f"❌ Gagal membaca file: {e}")
         st.stop()
+
+    st.markdown("---")
 
     # Calculate SaaS Executive KPI Metrics
     metrics = processor.calculate_saas_metrics(df_labeled)
@@ -265,20 +315,21 @@ if "Pilihan 1" in mode_selection:
 
     # Dashboard Tabs
     tab_overview, tab_deepdive, tab_toplikes, tab_dataviewer = st.tabs([
-        "📈 Ringkasan Eksekutif",
+        "📈 Executive Summary",
         "🔍 Aspect Deep-Dive",
         "⭐ Top Liked Comments",
         "📋 Data Viewer"
     ])
 
-    # TAB 1: EXECUTIVE OVERVIEW
+    # TAB 1: EXECUTIVE OVERVIEW (Strict 2-Column Grid Layout)
     with tab_overview:
-        st.subheader("📊 Distribusi Sentimen per 4 Aspek EV China")
+        st.subheader("📈 Ringkasan Visual Distribusi Sentimen & Aspek")
         df_aspect_sent = processor.prepare_aspect_sentiment_df(df_labeled)
 
-        col_left, col_right = st.columns([1.2, 0.8])
+        # ROW 1 (2 Columns): Grouped Bar Chart & Overall Sentiment Pie Chart
+        row1_col1, row1_col2 = st.columns(2)
 
-        with col_left:
+        with row1_col1:
             if not df_aspect_sent.empty:
                 fig_bar = px.bar(
                     df_aspect_sent,
@@ -290,11 +341,31 @@ if "Pilihan 1" in mode_selection:
                     title="Perbandingan Distribusi Sentimen per Aspek",
                     text_auto=True
                 )
-                fig_bar.update_layout(height=420, legend_title="Sentimen")
+                fig_bar.update_layout(height=400, legend_title="Sentimen")
                 st.plotly_chart(fig_bar, use_container_width=True)
 
-        with col_right:
-            aspect_sums = df_aspect_sent.groupby("Aspek")["Jumlah"].sum().reset_index()
+        with row1_col2:
+            df_overall_pie = processor.prepare_overall_sentiment_pie_df(df_labeled)
+            if not df_overall_pie.empty and df_overall_pie["Jumlah"].sum() > 0:
+                fig_overall_pie = px.pie(
+                    df_overall_pie,
+                    names="Sentimen",
+                    values="Jumlah",
+                    hole=0.35,
+                    title="Persentase Keseluruhan Sentimen",
+                    color="Sentimen",
+                    color_discrete_map={"Positif": "#2ecc71", "Netral": "#f1c40f", "Negatif": "#e74c3c"}
+                )
+                fig_overall_pie.update_layout(height=400)
+                st.plotly_chart(fig_overall_pie, use_container_width=True)
+
+        st.markdown("---")
+
+        # ROW 2 (2 Columns): Aspect Donut Chart & Aspect Co-occurrence Matrix Heatmap
+        row2_col1, row2_col2 = st.columns(2)
+
+        with row2_col1:
+            aspect_sums = df_aspect_sent.groupby("Aspek")["Jumlah"].sum().reset_index() if not df_aspect_sent.empty else pd.DataFrame()
             if not aspect_sums.empty and aspect_sums["Jumlah"].sum() > 0:
                 fig_donut = px.pie(
                     aspect_sums,
@@ -304,14 +375,72 @@ if "Pilihan 1" in mode_selection:
                     title="Proporsi Diskusi per Aspek",
                     color_discrete_sequence=px.colors.qualitative.Pastel
                 )
-                fig_donut.update_layout(height=420)
+                fig_donut.update_layout(height=400)
                 st.plotly_chart(fig_donut, use_container_width=True)
 
+        with row2_col2:
+            co_matrix, aspect_labels = processor.prepare_cooccurrence_matrix(df_labeled)
+            fig_matrix = px.imshow(
+                co_matrix,
+                x=aspect_labels,
+                y=aspect_labels,
+                color_continuous_scale="Blues",
+                text_auto=True,
+                aspect="auto",
+                title="Matriks Ko-okurensi Kemunculan Aspek"
+            )
+            fig_matrix.update_layout(
+                height=400,
+                coloraxis_showscale=False,
+                xaxis_title="Aspek",
+                yaxis_title="Aspek"
+            )
+            st.plotly_chart(fig_matrix, use_container_width=True)
+
         st.markdown("---")
-        st.markdown(f"**📌 Ringkasan Akumulasi Total Sentiment Label:** `{metrics['total_labels']:,}` Anotasi Sentimen | "
-                    f"🟢 **Positif:** `{metrics['pos_count']:,}` | "
-                    f"🟡 **Netral:** `{metrics['neu_count']:,}` | "
-                    f"🔴 **Negatif:** `{metrics['neg_count']:,}`")
+
+        # ROW 3 (2 Columns): Word Count Length Distribution per Sentiment & Key Summary Card
+        row3_col1, row3_col2 = st.columns(2)
+
+        with row3_col1:
+            df_wc_dist = processor.prepare_word_count_distribution_df(df_labeled)
+            if not df_wc_dist.empty:
+                fig_box = px.box(
+                    df_wc_dist,
+                    x="Sentimen",
+                    y="Jumlah Kata",
+                    color="Sentimen",
+                    color_discrete_map={"Positif": "#2ecc71", "Netral": "#f1c40f", "Negatif": "#e74c3c"},
+                    title="Distribusi Panjang Kata Komentar per Sentimen",
+                    points="outliers"
+                )
+                fig_box.update_layout(height=400, showlegend=False)
+                st.plotly_chart(fig_box, use_container_width=True)
+            else:
+                st.info("Data tidak cukup untuk menampilkan distribusi panjang kata.")
+
+        with row3_col2:
+            tot_lbls = metrics['total_labels']
+            pos_c = metrics['pos_count']
+            neu_c = metrics['neu_count']
+            neg_c = metrics['neg_count']
+            pos_p = (pos_c / tot_lbls * 100) if tot_lbls > 0 else 0
+            neu_p = (neu_c / tot_lbls * 100) if tot_lbls > 0 else 0
+            neg_p = (neg_c / tot_lbls * 100) if tot_lbls > 0 else 0
+
+            st.markdown(f"""
+            <div style="background-color: #ffffff; border: 1px solid #e1e8ed; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); height: 400px; display: flex; flex-direction: column; justify-content: center;">
+                <h4 style="color: #1e3c72; margin-top: 0;">Akumulasi Ringkasan Label Sentimen</h4>
+                <p style="color: #7f8c8d; font-size: 0.95rem;">Rincian total anotasi sentimen konsumen EV China pada 4 aspek utama (Infrastruktur, Ekonomi, Kualitas, Purnajual):</p>
+                <hr style="margin: 15px 0;">
+                <div style="font-size: 1.05rem; line-height: 2.2; font-weight: 600;">
+                    <div>📝 Total Anotasi Label: <span style="color: #2c3e50;">{tot_lbls:,}</span></div>
+                    <div>🟢 Sentimen Positif: <span style="color: #2ecc71;">{pos_c:,} ({pos_p:.1f}%)</span></div>
+                    <div>🟡 Sentimen Netral: <span style="color: #f1c40f;">{neu_c:,} ({neu_p:.1f}%)</span></div>
+                    <div>🔴 Sentimen Negatif: <span style="color: #e74c3c;">{neg_c:,} ({neg_p:.1f}%)</span></div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
     # TAB 2: ASPECT DEEP-DIVE
     with tab_deepdive:
@@ -324,7 +453,7 @@ if "Pilihan 1" in mode_selection:
         ])
 
         VISUALIZATION_STOPWORDS = set([
-            'yang', 'yg', 'nya', 'di', 'ke', 'dan', 'ini', 'itu', 'ada', 'sudah', 'bisa', 'banyak', 
+            'ya', 'yang', 'yg', 'nya', 'di', 'ke', 'dan', 'ini', 'itu', 'ada', 'sudah', 'bisa', 'banyak', 
             'lagi', 'sama', 'kalau', 'kalo', 'akan', 'jadi', 'bikin', 'dari', 'pada', 'buat', 'saja', 
             'aja', 'atau', 'dengan', 'untuk', 'lah', 'pun', 'kan', 'kah', 'deh', 'dong', 'kok', 'juga', 
             'masih', 'belum', 'harus', 'gak', 'ga', 'ngga', 'nggak', 'tidak', 'tak', 'gk', 'apa', 'tapi', 
@@ -335,9 +464,9 @@ if "Pilihan 1" in mode_selection:
         ])
 
         subtabs = [
-            ("infra_sentiment", subtab_infra, "Infrastruktur & SPKLU"),
-            ("ekonomi_sentiment", subtab_ekonomi, "Ekonomi & Harga EV"),
-            ("kualitas_sentiment", subtab_kualitas, "Kualitas & Durabilitas Build Quality"),
+            ("infra_sentiment", subtab_infra, "Infrastruktur, SPKLU, dan Jarak Tempuh"),
+            ("ekonomi_sentiment", subtab_ekonomi, "Ekonomi, Harga EV, dan Garansi"),
+            ("kualitas_sentiment", subtab_kualitas, "Kualitas, Desain, Durabilitas, dan Performa"),
             ("purnajual_sentiment", subtab_purnajual, "Purnajual & Layanan Dealer")
         ]
 
@@ -411,7 +540,7 @@ if "Pilihan 1" in mode_selection:
 
     # TAB 3: TOP LIKED COMMENTS
     with tab_toplikes:
-        st.subheader("⭐ Galeri Komentar Terpopuler (Top Liked Comments)")
+        st.subheader("⭐ Komentar Terpopuler")
         f_col1, f_col2, f_col3 = st.columns(3)
         with f_col1:
             sel_aspect = st.selectbox("Pilih Aspek:", list(ASPECT_NAMES.values()))
@@ -470,88 +599,79 @@ if "Pilihan 1" in mode_selection:
 
 
 # ==============================================================================
-# MODE 2: LAKUKAN PELABELAN DATA (XLM-ROBERTA INFERENCE ENGINE)
+# MODE 2: PELABELAN (XLM-ROBERTA INFERENCE ENGINE)
 # ==============================================================================
 else:
-    st.title("🤖 Inferensi & Pelabelan Otomatis XLM-RoBERTa")
-    st.markdown("Unggah komentar mentah hasil tarikan YouTube API (`yt_comments_raw.csv`) untuk menjalankan inferensi model XLM-RoBERTa PyTorch (`xlmroberta_absa_model.zip`).")
-
+    st.title("Inference & Labeling")
+    
     xlm_engine = get_xlm_engine()
     if xlm_engine.is_weights_loaded:
-        st.success(f"⚡ **Inference Engine Ready:** XLM-RoBERTa Fine-Tuned Model Loaded | **Compute Device:** `{xlm_engine.device}`")
+        st.success(f"⚡ **Inference Engine Ready:** XLM-RoBERTa Fine-Tuned Model Loaded | **Device:** `{xlm_engine.device}`")
     else:
         st.warning(f"⚠️ **Inference Engine Warning:** XLM-RoBERTa Weights Not Loaded (Menggunakan Fallback Rule-Based Engine) | **Device:** `{xlm_engine.device}`")
 
-    raw_file = st.file_uploader("Unggah Komentar Mentah Hasil Tarikan YouTube API (CSV):", type=["csv"])
+    raw_file = st.file_uploader(
+        "📂 Unggah Komentar Mentah YouTube API (CSV):",
+        type=["csv"],
+        key="mode2_main_uploader"
+    )
 
-    if raw_file is not None:
-        try:
-            df_raw = pd.read_csv(raw_file, encoding="utf-8-sig")
-            st.success(f"Berhasil membaca file mentah: `{raw_file.name}` ({len(df_raw):,} baris)")
-        except Exception as e:
-            st.error(f"Gagal membaca file CSV mentah: {e}")
-            df_raw = None
-    else:
-        st.info("💡 **Belum ada file diunggah.** Anda dapat mengunggah file komentar mentah YouTube API Anda sendiri. "
-                "Sebagai contoh uji coba, Anda bisa menggunakan data sampel di bawah ini.")
+    if raw_file is None:
+        st.stop()
+
+    try:
+        df_raw = pd.read_csv(raw_file, encoding="utf-8-sig")
+        st.success(f"✅ Berhasil membaca berkas mentah: `{raw_file.name}` ({len(df_raw):,} baris data)")
+    except Exception as e:
+        st.error(f"❌ Gagal membaca file CSV mentah: {e}")
+        st.stop()
+
+    st.subheader("Pratinjau Teks Mentah")
+    st.dataframe(df_raw.head(5), use_container_width=True)
+
+    if st.button("Jalankan Pelabelan Otomatis (XLM-RoBERTa Engine)"):
+        with st.spinner("Memuat model XLM-RoBERTa & menyiapkan pipeline..."):
+            xlm_engine = get_xlm_engine()
+
+        st.info("Memproses pembersihan teks (text cleaner) & inferensi multi-head...")
         
-        sample_raw_path = Path("data/raw/yt_comments_additional_20260927_210207.csv")
-        if sample_raw_path.exists():
-            if st.button("🧪 Gunakan Sample Raw Data"):
-                df_raw = pd.read_csv(sample_raw_path, encoding="utf-8-sig").head(50)
-                st.success(f"Berhasil memuat 50 baris sampel mentah dari `{sample_raw_path.name}`")
-            else:
-                df_raw = None
-        else:
-            df_raw = None
+        # Step 1: Text Cleaning
+        if "text_cleaned" not in df_raw.columns:
+            text_col = "text_original" if "text_original" in df_raw.columns else df_raw.columns[0]
+            df_raw["text_cleaned"] = processor.clean_text_series(df_raw[text_col])
 
-    if df_raw is not None:
-        st.subheader("👀 Pratinjau Teks Mentah")
-        st.dataframe(df_raw.head(5), use_container_width=True)
+        # Step 2: Batch Inference
+        progress_bar = st.progress(0.0)
+        status_text = st.empty()
 
-        if st.button("🚀 Jalankan Pelabelan Otomatis (XLM-RoBERTa Engine)"):
-            with st.spinner("Memuat model XLM-RoBERTa & menyiapkan pipeline..."):
-                xlm_engine = get_xlm_engine()
+        def update_progress(pct):
+            progress_bar.progress(pct)
+            status_text.text(f"Memproses inferensi XLM-RoBERTa: {int(pct*100)}%")
 
-            st.info("⚙️ Memproses pembersihan teks (text cleaner) & inferensi multi-head...")
-            
-            # Step 1: Text Cleaning
-            if "text_cleaned" not in df_raw.columns:
-                text_col = "text_original" if "text_original" in df_raw.columns else df_raw.columns[0]
-                df_raw["text_cleaned"] = processor.clean_text_series(df_raw[text_col])
+        texts_to_predict = df_raw["text_cleaned"].tolist()
+        predictions_dict = xlm_engine.predict_batch(texts_to_predict, batch_size=16, progress_callback=update_progress)
 
-            # Step 2: Batch Inference
-            progress_bar = st.progress(0.0)
-            status_text = st.empty()
+        # Assign aspect predictions
+        for col_name, preds in predictions_dict.items():
+            df_raw[col_name] = preds
 
-            def update_progress(pct):
-                progress_bar.progress(pct)
-                status_text.text(f"Memproses inferensi XLM-RoBERTa: {int(pct*100)}%")
+        st.success("Pelabelan Otomatis XLM-RoBERTa Selesai!")
 
-            texts_to_predict = df_raw["text_cleaned"].tolist()
-            predictions_dict = xlm_engine.predict_batch(texts_to_predict, batch_size=16, progress_callback=update_progress)
+        # Standardize output columns WITHOUT human_* or rule_* engine columns
+        df_final_output = processor.standardize_output_dataframe(df_raw)
 
-            # Assign aspect predictions
-            for col_name, preds in predictions_dict.items():
-                df_raw[col_name] = preds
+        st.subheader("📋 Hasil Pelabelan Otomatis (Cuplikan 10 Baris)")
+        st.dataframe(df_final_output.head(10), use_container_width=True)
 
-            st.success("🎉 Pelabelan Otomatis XLM-RoBERTa Selesai!")
-
-            # Standardize output columns WITHOUT human_* or rule_* engine columns (as per Jawaban 3)
-            df_final_output = processor.standardize_output_dataframe(df_raw)
-
-            st.subheader("📋 Hasil Pelabelan Otomatis (Cuplikan 10 Baris)")
-            st.dataframe(df_final_output.head(10), use_container_width=True)
-
-            # Download Button
-            csv_export = df_final_output.to_csv(index=False, encoding="utf-8-sig")
-            
-            st.markdown("---")
-            st.success("💡 **Petunjuk Langkah Selanjutnya:** Unduh berkas CSV berlabel di bawah ini, kemudian Anda dapat beralih ke **Pilihan 1 (Executive Dashboard)** di sidebar untuk langsung menganalisis hasilnya!")
-            
-            st.download_button(
-                label="📥 Unduh CSV Berlabel (Standard 4 Aspek)",
-                data=csv_export,
-                file_name="yt_comments_xlmroberta_labeled.csv",
-                mime="text/csv"
-            )
+        # Download Button
+        csv_export = df_final_output.to_csv(index=False, encoding="utf-8-sig")
+        
+        st.markdown("---")
+        st.success("💡 **Petunjuk Langkah Selanjutnya:** Unduh berkas CSV berlabel di bawah ini, kemudian Anda dapat beralih ke **Dashboard** di sidebar untuk langsung menganalisis hasilnya!")
+        
+        st.download_button(
+            label="📥 Unduh CSV Berlabel (Standard 4 Aspek)",
+            data=csv_export,
+            file_name="yt_comments_xlmroberta_labeled.csv",
+            mime="text/csv"
+        )

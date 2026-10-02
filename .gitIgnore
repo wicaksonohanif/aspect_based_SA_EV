@@ -16,3 +16,7 @@ outputs/**/*.zip
 # Local data / Journal
 ./journal/USB_2026
 ./journal/human_audit_remaining.xlsx
+
+# Office temp lock files
+~$*
+

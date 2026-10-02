@@ -1,18 +1,15 @@
 # 🎨 Skill & Design System: Frontend UI/UX Streamlit Web Application
 
 Dokumen ini adalah acuan **Design System & Template Preferensi Tampilan Frontend** untuk pembuatan aplikasi web **Aspect-Based Sentiment Analysis (ABSA) Komentar Mobil Listrik (EV)** berbasis **Streamlit**.
-
-Silakan isi atau ubah variabel dan preferensi di bawah ini sesuai keinginan Anda. Template ini akan dibaca secara otomatis oleh AI sebagai petunjuk utama dalam mengodekan `app.py` dan komponen kustom CSS.
-
 ---
 
 ## 🛠️ 1. Tema & Palet Warna (Color Palette & Dark/Light Mode)
 
-- **Mode Tampilan Utama:** `Dark Mode` / `Light Mode` *(Pilih salah satu)*
-- **Warna Utama (Primary Accent):** `#00D2FF` *(misal: Electric Cyan / Blue Otomotif)*
-- **Warna Latar Belakang (Background):** `#0F172A` *(misal: Deep Slate Navy)*
-- **Warna Latar Kartu (Card Background):** `#1E293B` *(misal: Dark Slate Gray)*
-- **Warna Teks Utama (Text Color):** `#F8FAFC` *(Pure White / Soft White)*
+- **Mode Tampilan Utama:** `Dark Mode`
+- **Warna Utama (Primary Accent):** `#00D2FF` 
+- **Warna Latar Belakang (Background):** `#0F172A` 
+- **Warna Latar Kartu (Card Background):** `#1E293B` 
+- **Warna Teks Utama (Text Color):** `#FFFFFF` 
 
 ### 🚥 Palet Warna Sentimen per Aspek:
 - 🟢 **Sentimen Positif:** `#10B981` *(Emerald Green)*
@@ -24,8 +21,8 @@ Silakan isi atau ubah variabel dan preferensi di bawah ini sesuai keinginan Anda
 
 ## 🔤 2. Tipografi & Font (Typography)
 
-- **Font Utama Judul (Headings):** `'Poppins'`,
-- **Font Isi Teks (Body Text):** `Poppins`
+- **Font Utama Judul (Headings):** `'Inter'`,
+- **Font Isi Teks (Body Text):** `Inter`
 - **Gaya Judul Dashboard:** *Gradiens Teks (Electric Gradient)* / *Solid Minimalis*
 
 ---

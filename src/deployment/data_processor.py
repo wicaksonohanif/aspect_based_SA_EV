@@ -120,3 +120,60 @@ class DashboardDataProcessor:
         extra_cols = [c for c in output_df.columns if c not in STANDARD_COLUMNS and not c.startswith("human_") and not c.startswith("rule_") and c not in ["strat_key", "strat_label", "has_aspect", "aspect_count"]]
         
         return output_df[final_cols + extra_cols]
+
+    def prepare_overall_sentiment_pie_df(self, df):
+        aspect_cols = [f"{a}_sentiment" for a in ASPECTS if f"{a}_sentiment" in df.columns]
+        all_sentiments = []
+        for col in aspect_cols:
+            valid_sents = df[col].dropna().astype(str).str.lower().tolist()
+            valid_sents = [s.capitalize() for s in valid_sents if s in ['positif', 'netral', 'negatif']]
+            all_sentiments.extend(valid_sents)
+        
+        if not all_sentiments:
+            return pd.DataFrame([{"Sentimen": "Positif", "Jumlah": 0}, {"Sentimen": "Netral", "Jumlah": 0}, {"Sentimen": "Negatif", "Jumlah": 0}])
+
+        s_counts = pd.Series(all_sentiments).value_counts()
+        records = [
+            {"Sentimen": "Positif", "Jumlah": int(s_counts.get("Positif", 0))},
+            {"Sentimen": "Netral", "Jumlah": int(s_counts.get("Netral", 0))},
+            {"Sentimen": "Negatif", "Jumlah": int(s_counts.get("Negatif", 0))},
+        ]
+        return pd.DataFrame(records)
+
+    def prepare_cooccurrence_matrix(self, df):
+        aspect_cols = [f"{a}_sentiment" for a in ASPECTS]
+        aspect_display_names = ['Infrastruktur', 'Ekonomi', 'Kualitas', 'Purnajual']
+        
+        matrix = np.zeros((4, 4), dtype=int)
+        for i, col1 in enumerate(aspect_cols):
+            for j, col2 in enumerate(aspect_cols):
+                if col1 in df.columns and col2 in df.columns:
+                    mask1 = df[col1].notnull() & ~df[col1].astype(str).str.lower().isin(['none', 'nan', ''])
+                    mask2 = df[col2].notnull() & ~df[col2].astype(str).str.lower().isin(['none', 'nan', ''])
+                    matrix[i, j] = int((mask1 & mask2).sum())
+                    
+        return matrix, aspect_display_names
+
+    def prepare_word_count_distribution_df(self, df):
+        text_col = "text_cleaned" if "text_cleaned" in df.columns else ("text_original" if "text_original" in df.columns else None)
+        if not text_col:
+            return pd.DataFrame()
+
+        df_temp = df.copy()
+        df_temp["word_count"] = df_temp[text_col].fillna("").astype(str).apply(lambda x: len(x.split()))
+        
+        records = []
+        for col, name in ASPECT_NAMES.items():
+            if col in df_temp.columns:
+                sub = df_temp[df_temp[col].notnull()].copy()
+                sub["sent"] = sub[col].astype(str).str.lower()
+                for _, row in sub.iterrows():
+                    if row["sent"] in ["positif", "netral", "negatif"]:
+                        records.append({
+                            "Sentimen": row["sent"].capitalize(),
+                            "Jumlah Kata": int(row["word_count"]),
+                            "Aspek": name
+                        })
+                        
+        return pd.DataFrame(records)
+
