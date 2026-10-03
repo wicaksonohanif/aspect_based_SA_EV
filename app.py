@@ -230,13 +230,19 @@ nav_selection = st.sidebar.radio(
 # ==============================================================================
 if nav_selection == "ANALYTICS":
     st.title("Sentiment Analytics")
-    col_up_title, col_up_dl = st.columns([2.5, 1])
+    sample_path = Path("data/interim/valid_labeled_comments.csv")
+    
+    col_up_title, col_up_sample, col_up_dl = st.columns([2, 1.2, 1.2])
     with col_up_title:
         st.markdown("#### 📂 Unggah Data Master Berlabel (CSV / XLSX)")
+    with col_up_sample:
+        if sample_path.exists():
+            if st.button("📊 Gunakan Data Sampel", use_container_width=True, help="Muat data sampel valid_labeled_comments.csv"):
+                st.session_state["mode1_use_sample"] = True
     with col_up_dl:
         excel_template_bytes = generate_excel_template()
         st.download_button(
-            label="📄 Unduh Template Format XLSX",
+            label="📄 Unduh Template XLSX",
             data=excel_template_bytes,
             file_name="template_master_labeled_comments.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -250,17 +256,28 @@ if nav_selection == "ANALYTICS":
         label_visibility="collapsed"
     )
 
-    if uploaded_file is None:
-        st.stop()
+    df_labeled = None
 
-    try:
-        if uploaded_file.name.endswith(".xlsx"):
-            df_labeled = pd.read_excel(uploaded_file)
-        else:
-            df_labeled = pd.read_csv(uploaded_file, encoding="utf-8-sig")
-        st.success(f"Berhasil memuat berkas: `{uploaded_file.name}` ({len(df_labeled):,} baris data)")
-    except Exception as e:
-        st.error(f"❌ Gagal membaca file: {e}")
+    if uploaded_file is not None:
+        st.session_state["mode1_use_sample"] = False
+        try:
+            if uploaded_file.name.endswith(".xlsx"):
+                df_labeled = pd.read_excel(uploaded_file)
+            else:
+                df_labeled = pd.read_csv(uploaded_file, encoding="utf-8-sig")
+            st.success(f"Berhasil memuat berkas: `{uploaded_file.name}` ({len(df_labeled):,} baris data)")
+        except Exception as e:
+            st.error(f"❌ Gagal membaca file: {e}")
+            st.stop()
+    elif st.session_state.get("mode1_use_sample", False) and sample_path.exists():
+        try:
+            df_labeled = pd.read_csv(sample_path, encoding="utf-8-sig")
+            st.info(f"💡 Menggunakan Data Sampel Bawaan: `valid_labeled_comments.csv` ({len(df_labeled):,} baris data)")
+        except Exception as e:
+            st.error(f"❌ Gagal membaca file data sampel: {e}")
+            st.stop()
+    else:
+        st.info("👆 Silakan unggah berkas data berlabel Anda atau klik **Gunakan Data Sampel** untuk langsung menganalisis data bawaan.")
         st.stop()
 
     st.markdown("---")
@@ -610,20 +627,44 @@ else:
     else:
         st.warning(f"⚠️ **Inference Engine Warning:** XLM-RoBERTa Weights Not Loaded (Menggunakan Fallback Rule-Based Engine) | **Device:** `{xlm_engine.device}`")
 
+    col_raw_title, col_raw_sample = st.columns([2.5, 1])
+    with col_raw_title:
+        st.markdown("#### 📂 Unggah Komentar Mentah YouTube API (CSV)")
+    with col_raw_sample:
+        dummy_sample_path = Path("data/dummy/dummy_inference_sample.csv")
+        interim_sample_path = Path("data/interim/valid_labeled_comments.csv")
+        target_raw_sample = dummy_sample_path if dummy_sample_path.exists() else interim_sample_path
+        
+        if target_raw_sample.exists():
+            if st.button("🧪 Gunakan Data Sampel", use_container_width=True, help=f"Muat data sampel {target_raw_sample.name}"):
+                st.session_state["mode2_use_sample"] = True
+
     raw_file = st.file_uploader(
         "📂 Unggah Komentar Mentah YouTube API (CSV):",
         type=["csv"],
-        key="mode2_main_uploader"
+        key="mode2_main_uploader",
+        label_visibility="collapsed"
     )
 
-    if raw_file is None:
-        st.stop()
+    df_raw = None
 
-    try:
-        df_raw = pd.read_csv(raw_file, encoding="utf-8-sig")
-        st.success(f"✅ Berhasil membaca berkas mentah: `{raw_file.name}` ({len(df_raw):,} baris data)")
-    except Exception as e:
-        st.error(f"❌ Gagal membaca file CSV mentah: {e}")
+    if raw_file is not None:
+        st.session_state["mode2_use_sample"] = False
+        try:
+            df_raw = pd.read_csv(raw_file, encoding="utf-8-sig")
+            st.success(f"✅ Berhasil membaca berkas mentah: `{raw_file.name}` ({len(df_raw):,} baris data)")
+        except Exception as e:
+            st.error(f"❌ Gagal membaca file CSV mentah: {e}")
+            st.stop()
+    elif st.session_state.get("mode2_use_sample", False) and target_raw_sample.exists():
+        try:
+            df_raw = pd.read_csv(target_raw_sample, encoding="utf-8-sig")
+            st.info(f"💡 Menggunakan Data Sampel Bawaan: `{target_raw_sample.name}` ({len(df_raw):,} baris data)")
+        except Exception as e:
+            st.error(f"❌ Gagal membaca file data sampel: {e}")
+            st.stop()
+    else:
+        st.info("👆 Silakan unggah berkas CSV mentah Anda atau klik **Gunakan Data Sampel** untuk pengujian inferensi.")
         st.stop()
 
     st.subheader("Pratinjau Teks Mentah")
