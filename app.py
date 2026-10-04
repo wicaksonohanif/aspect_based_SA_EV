@@ -109,20 +109,21 @@ st.markdown("""
     }
 
     /* White Logo Card at Top of Sidebar */
-    .sidebar-logo-card {
-        background-color: #FFFFFF;
+    [data-testid="stSidebar"] .sidebar-logo-card {
+        background-color: #FFFFFF !important;
         border-radius: 20px;
-        padding: 12px 10px;
+        padding: 14px 10px;
         text-align: center;
         margin-bottom: 25px;
-        box-shadow: 0px 4px 10px rgba(0,0,0,0.15);
+        box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
     }
-    .sidebar-logo-card h2 {
+    [data-testid="stSidebar"] .sidebar-logo-card h2 {
         color: #1e3c72 !important;
         margin: 0;
         font-size: 24px;
         font-weight: 800;
     }
+
 
     /* ---------- KPI Cards ---------- */
     .kpi-card {
@@ -584,17 +585,15 @@ if nav_selection == "ANALYTICS":
 
                 badge_class = f"badge-{sel_sentiment.lower()}"
                 
-                st.markdown(f"""
-                <div class="comment-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <span class="{badge_class}">{sel_sentiment.upper()} — {sel_aspect}</span>
-                        <span style="font-weight: 700; color: #e67e22;">👍 {like_num:,} Likes</span>
-                    </div>
-                    <p style="font-size: 1.05rem; color: #f0f6fc; margin: 8px 0;">"{comment_txt}"</p>
+                st.markdown(f"""<div class="comment-card">
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+    <span class="{badge_class}">{sel_sentiment.upper()} — {sel_aspect}</span>
+    <span style="font-weight: 700; color: #e67e22;">👍 {like_num:,} Likes</span>
+</div>
+<p style="font-size: 1.05rem; color: #f0f6fc; margin: 8px 0;">"{comment_txt}"</p>
+<div style="font-size: 0.85rem; color: #8b949e;">Video ID: <code style="color: #58a6ff; background-color: rgba(110,118,129,0.4); padding: 2px 6px; border-radius: 4px;">{vid_id}</code></div>
+</div>""", unsafe_allow_html=True)
 
-                    <div style="font-size: 0.8rem; color: #95a5a6;">Video ID: <code>{vid_id}</code></div>
-                </div>
-                """, unsafe_allow_html=True)
         else:
             st.info(f"Tidak ada komentar ditemukan untuk Aspek **{sel_aspect}** dengan Sentimen **{sel_sentiment}**.")
 
