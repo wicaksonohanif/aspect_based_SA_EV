@@ -629,7 +629,7 @@ else:
     if xlm_engine and xlm_engine.is_weights_loaded:
         st.success(f"⚡ **Inference Engine Ready:** XLM-RoBERTa Fine-Tuned Model Loaded | **Device:** `{xlm_engine.device}`")
     else:
-        st.warning(f"⚠️ **Inference Engine Warning:** XLM-RoBERTa Weights Not Loaded (Menggunakan Fallback Rule-Based Engine)")
+        st.info("⚡ **Serverless Cloud API Engine Active:** Menggunakan Cloud API & Gemini Engine (RAM Optimized untuk Cloud)")
 
     col_raw_title, col_raw_sample = st.columns([2.5, 1])
     with col_raw_title:

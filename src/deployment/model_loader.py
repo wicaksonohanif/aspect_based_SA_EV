@@ -110,11 +110,22 @@ class XLMInferenceEngine:
         self.is_weights_loaded = False
         self.rule_engine = None
 
-        if HAS_WEAK_SUPERVISION:
-            self.rule_engine = WeakSupervisionEngine(use_gemini=False)
+        # Check if running on Streamlit Cloud (1 GB RAM limit)
+        self.is_cloud = (
+            os.environ.get("STREAMLIT_SERVER_PORT") is not None or
+            os.environ.get("IS_STREAMLIT_CLOUD") == "true" or
+            Path("/app").exists() or
+            Path("/home/appuser").exists()
+        )
 
-        if HAS_TORCH:
+        if HAS_WEAK_SUPERVISION:
+            # Enable Gemini API & Rule-Based serverless engine
+            self.rule_engine = WeakSupervisionEngine(use_gemini=True)
+
+        if HAS_TORCH and not self.is_cloud:
             self._load_pytorch_pipeline()
+        elif self.is_cloud:
+            print("[ModelLoader Info] Lingkungan Streamlit Cloud terdeteksi. Menggunakan Gemini API & Rule-Based Serverless Engine untuk mencegah Out of Memory (OOM).")
 
     def _load_pytorch_pipeline(self):
         try:
@@ -145,17 +156,6 @@ class XLMInferenceEngine:
                         z.extractall(extract_dir)
                     weights_path = extract_dir / "pytorch_model.bin"
 
-            # Hugging Face Hub Fallback for Cloud Deployment
-            if weights_path is None or not weights_path.exists():
-                try:
-                    from huggingface_hub import hf_hub_download
-                    hf_repo = getattr(self, "hf_repo_id", "wicaksonohanif/xlm-roberta-ev-absa")
-                    print(f"[ModelLoader] Mengunduh pytorch_model.bin dari Hugging Face Hub: {hf_repo}...")
-                    downloaded_weights = hf_hub_download(repo_id=hf_repo, filename="pytorch_model.bin")
-                    weights_path = Path(downloaded_weights)
-                except Exception as hf_err:
-                    print(f"[ModelLoader Warning] Gagal mengunduh dari HF Hub: {hf_err}")
-
             model_dir_to_use = weights_path.parent if weights_path else self.model_dir
             if (model_dir_to_use / "tokenizer_config.json").exists():
                 self.tokenizer = AutoTokenizer.from_pretrained(str(model_dir_to_use))
@@ -175,6 +175,7 @@ class XLMInferenceEngine:
             self.model.eval()
         except Exception as e:
             print(f"[ModelLoader Warning] Gagal memuat pipeline PyTorch: {e}")
+            self.is_weights_loaded = False
 
     def predict_batch(self, texts, batch_size=16, progress_callback=None):
         all_results = {f"{asp}_sentiment": [] for asp in ASPECTS}
