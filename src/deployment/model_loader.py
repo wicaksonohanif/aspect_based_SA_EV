@@ -1,5 +1,10 @@
 import os
 import sys
+
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["HF_HUB_DISABLE_SYMLINKS_WARNING"] = "1"
+
 import numpy as np
 import pandas as pd
 from pathlib import Path

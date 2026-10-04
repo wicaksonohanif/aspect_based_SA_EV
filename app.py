@@ -188,7 +188,11 @@ st.markdown("""
 # Cache Model & Processor Initialization
 @st.cache_resource(show_spinner="Memuat Pipeline Model XLM-RoBERTa...")
 def get_xlm_engine():
-    return XLMInferenceEngine()
+    try:
+        return XLMInferenceEngine()
+    except Exception as e:
+        print(f"[App Warning] Exception in get_xlm_engine: {e}")
+        return XLMInferenceEngine(model_dir="non_existent")  # Fallback to rule engine
 
 def get_data_processor():
     return DashboardDataProcessor()
@@ -622,10 +626,10 @@ else:
     st.title("Inference & Labeling")
     
     xlm_engine = get_xlm_engine()
-    if xlm_engine.is_weights_loaded:
+    if xlm_engine and xlm_engine.is_weights_loaded:
         st.success(f"⚡ **Inference Engine Ready:** XLM-RoBERTa Fine-Tuned Model Loaded | **Device:** `{xlm_engine.device}`")
     else:
-        st.warning(f"⚠️ **Inference Engine Warning:** XLM-RoBERTa Weights Not Loaded (Menggunakan Fallback Rule-Based Engine) | **Device:** `{xlm_engine.device}`")
+        st.warning(f"⚠️ **Inference Engine Warning:** XLM-RoBERTa Weights Not Loaded (Menggunakan Fallback Rule-Based Engine)")
 
     col_raw_title, col_raw_sample = st.columns([2.5, 1])
     with col_raw_title:
