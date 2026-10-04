@@ -140,6 +140,17 @@ class XLMInferenceEngine:
                         z.extractall(extract_dir)
                     weights_path = extract_dir / "pytorch_model.bin"
 
+            # Hugging Face Hub Fallback for Cloud Deployment
+            if weights_path is None or not weights_path.exists():
+                try:
+                    from huggingface_hub import hf_hub_download
+                    hf_repo = getattr(self, "hf_repo_id", "wicaksonohanif/xlm-roberta-ev-absa")
+                    print(f"[ModelLoader] Mengunduh pytorch_model.bin dari Hugging Face Hub: {hf_repo}...")
+                    downloaded_weights = hf_hub_download(repo_id=hf_repo, filename="pytorch_model.bin")
+                    weights_path = Path(downloaded_weights)
+                except Exception as hf_err:
+                    print(f"[ModelLoader Warning] Gagal mengunduh dari HF Hub: {hf_err}")
+
             model_dir_to_use = weights_path.parent if weights_path else self.model_dir
             if (model_dir_to_use / "tokenizer_config.json").exists():
                 self.tokenizer = AutoTokenizer.from_pretrained(str(model_dir_to_use))
