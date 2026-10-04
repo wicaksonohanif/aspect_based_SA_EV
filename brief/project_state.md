@@ -1,13 +1,13 @@
 # 📌 PROJECT STATEMENT & CONTEXT HANDOFF: USB 2026
 
 ### **Judul Proyek**
-**Aspect-Based Sentiment Analysis (ABSA) Multi-Task Mobil Listrik (EV) China di Indonesia Menggunakan Arsitektur Discriminative Encoder Berbasis 5-Fold Stratified Cross-Validation**
+**Analisis Sentimen Berbasis Aspek terhadap Opini Publik Mobil Listrik Tiongkok di Indonesia Menggunakan IndoRoBERTa dan XLM-RoBERTa**
 
 - **Tim Peneliti / Author:** Wicaksono Hanif Supriyanto & Firman Pambudiansyah
-- **Lokasi Workspace:** `E:\Documents\aspect_based_SA_EV`
-- **Domain:** Natural Language Processing (NLP) / Deep Learning / Aspect-Based Sentiment Analysis.
-- **Sumber Data:** Komentar YouTube warganet Indonesia mengenai mobil listrik pabrikan China (BYD, Wuling, Chery, Neta, Seres, dll).
-- **Target Kompetisi:** Lomba Penambangan Data USB 2026 & Publikasi Jurnal Penelitian (Target: 5 Oktober 2026).
+- **Lokasi Workspace:** `C:\Users\Wicaksono Hanif\Desktop\Koding\deep_learning\usb_2026`
+- **Domain:** Natural Language Processing (NLP) / Deep Learning / Aspect-Based Sentiment Analysis (ABSA).
+- **Sumber Data:** Komentar YouTube warganet Indonesia mengenai mobil listrik pabrikan Tiongkok (BYD, Wuling, Chery, Neta, Seres, MG, dll).
+- **Target Publikasi:** Lomba Penambangan Data USB 2026 & Jurnal Penelitian Ilmiah.
 
 ---
 
@@ -31,7 +31,7 @@ Membangun pipeline end-to-end klasifikasi sentimen multi-task 4 aspek otomotif E
 ## 2. 📂 Struktur Repositori & Modul Kode
 
 ```text
-aspect_based_SA_EV/
+usb_2026/
 ├── brief/
 │   ├── AGENTS.md                  # Directive & SOP agen AI
 │   ├── PRD.md                     # Product Requirements Document v2.0 (Approved)
@@ -40,95 +40,78 @@ aspect_based_SA_EV/
 │   ├── 01_data_extraction.spec.md # Kontrak YouTube API v3 & PII SHA-256
 │   ├── 02_preprocessing_labeling.spec.md # Kontrak normalisasi & Weak Supervision
 │   ├── 03_model_training.spec.md  # Kontrak 5-Fold Stratified CV Benchmark (v6)
-│   └── 04_deployment_streamlit_web_app.spec.md # Spec deployment dashboard web
+│   ├── 04_deployment_streamlit_web_app.spec.md # Spec dashboard web Streamlit
+│   └── 05_deployment_cloud_huggingface.spec.md # Spec cloud deployment & HF Hub
 ├── data/
 │   ├── raw/                       # Komentar mentah (yt_comments_all_combined.csv, read-only)
-│   ├── processed/                 # 100% Pure Human Gold Standard (954 data audit)
-│   │   ├── train.csv              # Data latih baseline split awal
-│   │   └── val.csv                # Data validasi baseline split awal
-│   └── slang_dict.json            # Kamus normalisasi istilah gaul/otomotif
+│   ├── interim/                   # Data valid_labeled_comments.csv (1377 baris)
+│   ├── dummy/                     # Data sampel inferensi mentah
+│   └── processed/                 # 100% Pure Human Gold Standard (954 audit)
 ├── src/
-│   ├── extraction/
-│   │   └── extractor.py           # YouTubeCommentExtractor (Regex URL Parser, SHA-256)
-│   ├── preprocessing/
-│   │   └── text_cleaner.py        # Normalisasi slang otomotif, noise cleaner
-│   ├── labeling/
-│   │   ├── gemini_labeler.py      # Structured JSON Output via Gemini API
-│   │   ├── weak_supervision.py    # Hybrid cascade (Rule-based + Gemini)
-│   │   ├── eval_kappa.py          # Evaluator statistik Cohen's Kappa (κ)
-│   │   └── dataset_splitter.py    # Stratified dataset splitter (Zero leakage)
-│   └── models/
-│       ├── indoroberta_classifier.py # IndoRoBERTa-base (110M) Multi-Head GELU MLP
-│       ├── xlmroberta_classifier.py  # XLM-RoBERTa-large (550M) Multi-Head GELU MLP
-│       ├── sahabatai_classifier.py   # Baseline model wrapper
-│       └── metrics_evaluator.py      # Multi-aspect metrics calculator & confusion matrix
+│   ├── extraction/                # Extractor YouTube Data API v3 resmi
+│   ├── preprocessing/             # Text cleaner & normalisasi slang otomotif
+│   ├── labeling/                  # Hybrid Weak Supervision (Rule-based + Gemini 1.5)
+│   └── deployment/                # Model loader (HF integration) & data processor
 ├── notebooks/
 │   ├── 01_eda_raw_comments.ipynb
 │   ├── 02_eda_cleaned_comments.ipynb
 │   ├── 03_eda_labeled_dataset.ipynb
-│   └── 04_kaggle_training_indoroberta_vs_xlmroberta.ipynb # Notebook eksekusi Kaggle GPU (5-Fold CV)
+│   ├── 04_kaggle_training_indoroberta_vs_xlmroberta.ipynb # 5-Fold CV Kaggle GPU
+│   └── 05_eval.ipynb              # Evaluasi komparatif & barchart per-aspek
 ├── outputs/
-│   └── iter-01/                   # Hasil benchmark evaluasi split awal (JSON, CSV, CM)
-└── journal/                       # Berkas naskah publikasi (USB_2026.csv, audit remaining, proposal)
+│   ├── iter-03/                   # Metrik 5-Fold CV IndoRoBERTa-base
+│   └── iter-04/                   # Metrik & visualisasi XLM-RoBERTa-large
+├── app.py                         # Main Entrypoint Web Dashboard SentyBoard v1.0.0
+├── upload_model_to_hf.py          # Skrip pengunggah bobot model ke Hugging Face
+└── requirements.txt               # Dependensi proyek
 ```
 
 ---
 
-## 3. 🚀 Status Proyek Terkini & Guardrails Operasional
+## 3. 🚀 Status Proyek Terkini & Capaian Fase
 
-### A. Capaian Fase Selesai
-1. **Fase 1: Ekstraksi Data Legal & Kepatuhan Etika**
-   - Akuisisi >3.000 komentar YouTube via API v3 resmi.
-   - Strict PII Anonymization via SHA-256 (`user_id_hash`).
-2. **Fase 2: Preprocessing, Weak Supervision & Dataset Gold Standard**
+### A. Capaian Fase Selesai (Completed Milestones)
+1. **Fase 1: Ekstraksi Data Legal & Kepatuhan Etika (SPEC-01)**
+   - Akuisisi >3.000 komentar YouTube via API v3 resmi dengan *Strict PII Anonymization* SHA-256 (`user_id_hash`).
+2. **Fase 2: Preprocessing, Weak Supervision & Dataset Gold Standard (SPEC-02)**
    - Normalisasi slang otomotif lokal (`data/slang_dict.json`).
-   - Hybrid Weak Supervision (Rule-based local matcher + Gemini 1.5 Flash structured JSON).
+   - Hybrid Weak Supervision (Rule-based + Gemini 1.5 Flash structured JSON).
    - Validasi manusia menghasilkan **954 data Pure Human Gold Standard** ter-audit.
-   - Audit sisa data menerapkan protokol **Blind Review** (Schroeder et al., 2025) guna meniadakan bias sugesti LLM.
-3. **Fase 3: Transisi Benchmark 5-Fold Stratified Cross-Validation (SPEC-03 v6)**
-   - Standar pengujian beralih dari *single split* (70/30) ke **5-Fold Stratified Cross-Validation** pada total 954 sampel:
-     - Proporsi per fold: ~763 data latih (80%) dan ~191 data validasi (20%).
-     - Komposit stratifikasi 4 aspek simultan tanpa kebocoran data (*zero data leakage*, seed=42).
-   - Pelaporan metrik wajib menggunakan format ilmiah **Mean ± Standard Deviation**.
-
-### B. Guardrails Teknis & Komputasi ($0 Infrastructure)
-1. **Kaggle Disk Space Safeguard (`/kaggle/working < 20 GB`):**
-   - Menerapkan **Single Best Model Checkpoint Safeguard**: hanya menyimpan 1 file bobot model terbaik (~2.2 GB) dari lipatan dengan skor evaluasi tertinggi, bukan seluruh 5 fold (menghemat >8.8 GB diska).
-2. **Streamlit Deployment Memory Guardrail (RAM Limit 1 GB):**
-   - Antarmuka web dasbor publik **hanya memuat IndoRoBERTa-base (110M / ~440 MB)** untuk menjamin stabilitas tanpa risiko *Out of Memory (OOM)* crash.
-   - Model **XLM-RoBERTa-large (550M / ~2.1 GB)** diposisikan khusus untuk komparasi benchmark pada publikasi riset jurnal ilmiah.
+3. **Fase 3: Training 5-Fold Stratified Cross-Validation (SPEC-03)**
+   - Training 20 epoch per fold menggunakan Multi-Head Focal Loss ($\gamma=1.5$) & Dynamic Inverse Class Weights.
+   - Evaluasi 5-Fold Stratified CV menghasilkan model pemenang **XLM-RoBERTa-large (550M)** dengan skor **Macro F1 Active 58.26% ± 3.38%** (unggul +10.05% dibanding IndoRoBERTa 48.20%).
+4. **Fase 4: Dashboard Interaktif Streamlit SentyBoard v1.0.0 (SPEC-04)**
+   - Dibangun di `app.py` dengan tema default **Dark Mode**, tipografi **Inter**, dan sidebar **Blue Gradient**.
+   - **Mode 1 (Analytics):** Dashboard SaaS KPI 2-kolom grid layout, Donut Chart, Grouped Bar Chart, Heatmap Matrix Ko-okurensi, Boxplot Distribusi Kata, dan Galeri Komentar Terpopuler.
+   - **Mode 2 (Labeling):** Inferensi otomatis komentar mentah dengan opsi unduh CSV/XLSX berlabel.
+   - **Sample Data One-Click Button:** Tombol sekali klik untuk memuat dataset sampel bawaan `valid_labeled_comments.csv`.
+5. **Fase 5: Benchmark Notebook Evaluasi (`notebooks/05_eval.ipynb`)**
+   - Notebook evaluasi komparatif lengkap yang sudah dieksekusi (*pre-rendered cell outputs*), menyajikan barchart Macro F1 Active dan Macro F1 All per-aspek.
+6. **Fase 6: Cloud Deployment & Hugging Face Hub Integration (SPEC-05)**
+   - Unggah bobot model XLM-RoBERTa-large (`pytorch_model.bin` ~2.15 GB) ke Hugging Face Hub: [`wicaksonohanif/xlm-roberta-ev-absa`](https://huggingface.co/wicaksonohanif/xlm-roberta-ev-absa).
+   - Implementasi **Serverless Cloud API & Zero-RAM Protection** pada `src/deployment/model_loader.py` untuk mencegah *Out of Memory (OOM)* pada Streamlit Community Cloud (batas RAM 1.0 GB).
 
 ---
 
-## 4. 📊 Baseline Hasil Eksperimen Awal (Iterasi 01 - 287 Data Validasi)
-
-*Catatan: Ini adalah acuan benchmark awal sebelum eksekusi 5-Fold Stratified CV lengkap.*
+## 4. 📊 Ringkasan Hasil Evaluasi Final (5-Fold Stratified CV Benchmark)
 
 | Metrik Evaluasi | IndoRoBERTa-base (110M) | XLM-RoBERTa-large (550M) | Selisih Performa |
-|---|---|---|---|
-| **Overall Mean Accuracy** | 80.75% | **85.45%** | +4.70% (XLM Unggul) |
-| **Mean Macro F1 (All-Class)** | 58.93% | **62.92%** | +3.99% (XLM Unggul) |
-| **Mean Macro F1 (Active Sentiment)** | 48.57% | **52.81%** | +4.24% (XLM Unggul) |
-| **Exact Match Ratio (Subset Acc.)** | 44.95% | **55.40%** | +10.45% (XLM Unggul) |
+|---|:---:|:---:|:---:|
+| **Mean Macro F1 (Active Sentiments)** | 0.4820 ± 0.0245 | **0.5826 ± 0.0338** | **+0.1005** (+20.8% Relatif) |
+| **Mean Macro F1 (All Classes)** | 0.5988 ± 0.0211 | **0.6666 ± 0.0264** | **+0.0678** (+11.3% Relatif) |
+| **Mean Accuracy** | 0.7937 ± 0.0100 | **0.8382 ± 0.0080** | **+0.0445** (+5.6% Relatif) |
 
-### Temuan Analitis per Aspek (Macro F1 Active Sentiment):
-- **Infra:** IndoRoBERTa 41.01% vs **XLM-RoBERTa 49.58%**
-- **Ekonomi:** IndoRoBERTa 47.28% vs **XLM-RoBERTa 61.38%**
-- **Kualitas:** IndoRoBERTa 57.97% vs **XLM-RoBERTa 65.36%**
-- **Purnajual:** **IndoRoBERTa 48.00%** vs XLM-RoBERTa 34.94% (XLM-RoBERTa mengalami degradasi pada kelas minoritas purnajual).
+### Breakdown Macro F1 All Classes per Aspek:
+- 🏗️ **Infrastruktur EV:** IndoRoBERTa 0.6659 vs **XLM-RoBERTa 0.6470**
+- 💰 **Ekonomi & Harga:** IndoRoBERTa 0.6127 vs **XLM-RoBERTa 0.7011** (+8.84%)
+- 🚘 **Kualitas Produk:** IndoRoBERTa 0.5975 vs **XLM-RoBERTa 0.6775** (+8.00%)
+- 🛠️ **Purna Jual:** IndoRoBERTa 0.5191 vs **XLM-RoBERTa 0.6407** (+12.16%)
 
 ---
 
-## 5. 🎯 Roadmap & Tindakan Selanjutnya (Sprint-Ready)
+## 5. 🌐 Artefak Terpublikasi & Tautan Penting
 
-1. **Eksekusi 5-Fold Stratified CV di Kaggle GPU:**
-   - Jalankan notebook `notebooks/04_kaggle_training_indoroberta_vs_xlmroberta.ipynb` menggunakan GPU NVIDIA T4.
-   - Pastikan log real-time menampilkan Train Loss, Val F1-Active, Val F1-All, dan Val Accuracy per epoch.
-   - Verifikasi bahwa hanya 1 model terbaik yang disimpan ke diska working.
-2. **Penyusunan Hasil & Pelaporan:**
-   - Ekstrak metrik rata-rata (Mean ± Std Dev) ke folder `outputs/iter-02/` (atau folder hasil 5-fold).
-3. **Pembangunan Streamlit Web Dashboard (`specs/04_deployment_streamlit_web_app.spec.md`):**
-   - Bangun antarmuka Streamlit berbasis model IndoRoBERTa-base dengan batas RAM < 1 GB.
-4. **Publikasi Model & Jurnal:**
-   - Unggah bobot IndoRoBERTa-base ke Hugging Face Hub.
-   - Finalisasi draf paper penelitian di `journal/proposal_usb_2026.md` dan salindia presentasi.
+- **Hugging Face Model Hub:** [`wicaksonohanif/xlm-roberta-ev-absa`](https://huggingface.co/wicaksonohanif/xlm-roberta-ev-absa)
+- **GitHub Repository:** [`wicaksonohanif/aspect_based_SA_EV`](https://github.com/wicaksonohanif/aspect_based_SA_EV)
+- **Notebook Evaluasi:** [`notebooks/05_eval.ipynb`](file:///C:/Users/Wicaksono%20Hanif/Desktop/Koding/deep_learning/usb_2026/notebooks/05_eval.ipynb)
+- **Spesifikasi Deployment Cloud:** [`specs/05_deployment_cloud_huggingface.spec.md`](file:///C:/Users/Wicaksono%20Hanif/Desktop/Koding/deep_learning/usb_2026/specs/05_deployment_cloud_huggingface.spec.md)
