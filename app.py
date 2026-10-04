@@ -108,23 +108,6 @@ st.markdown("""
         background-color: rgba(255, 255, 255, 0.25) !important;
     }
 
-    /* White Logo Card at Top of Sidebar */
-    [data-testid="stSidebar"] .sidebar-logo-card {
-        background-color: #FFFFFF !important;
-        border-radius: 20px;
-        padding: 14px 10px;
-        text-align: center;
-        margin-bottom: 25px;
-        box-shadow: 0px 4px 12px rgba(0,0,0,0.2);
-    }
-    [data-testid="stSidebar"] .sidebar-logo-card h2 {
-        color: #1e3c72 !important;
-        margin: 0;
-        font-size: 24px;
-        font-weight: 800;
-    }
-
-
     /* ---------- KPI Cards ---------- */
     .kpi-card {
         background-color: #161b22;
@@ -218,12 +201,7 @@ def render_header_banner():
 render_header_banner()
 
 
-# 2. Sidebar White Logo Card & 1-Word Navigation (Referenced from misc.md)
-st.sidebar.markdown('''
-<div class="sidebar-logo-card">
-    <h2>SentyBoard</h2>
-</div>
-''', unsafe_allow_html=True)
+# 2. Sidebar Navigation
 
 nav_selection = st.sidebar.radio(
     "",
