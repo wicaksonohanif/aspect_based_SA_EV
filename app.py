@@ -126,16 +126,16 @@ st.markdown("""
 
     /* ---------- KPI Cards ---------- */
     .kpi-card {
-        background-color: #ffffff;
+        background-color: #161b22;
         border-radius: 12px;
         padding: 20px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
         border-left: 5px solid #3498db;
         margin-bottom: 12px;
     }
     .kpi-title {
         font-size: 0.85rem;
-        color: #7f8c8d;
+        color: #8b949e;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -143,7 +143,7 @@ st.markdown("""
     .kpi-value {
         font-size: 1.8rem;
         font-weight: 800;
-        color: #2c3e50;
+        color: #f0f6fc;
         margin-top: 5px;
     }
 
@@ -171,17 +171,18 @@ st.markdown("""
 
     /* ---------- Comment Cards ---------- */
     .comment-card {
-        background-color: #ffffff;
-        border: 1px solid #e1e8ed;
+        background-color: #161b22;
+        border: 1px solid #30363d;
         border-radius: 10px;
         padding: 16px;
         margin-bottom: 12px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.25);
     }
-    .badge-positif { background-color: #d4edda; color: #155724; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
-    .badge-netral { background-color: #fff3cd; color: #856404; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
-    .badge-negatif { background-color: #f8d7da; color: #721c24; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
+    .badge-positif { background-color: #1b4332; color: #75b798; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
+    .badge-netral { background-color: #433511; color: #ffda6a; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
+    .badge-negatif { background-color: #4c1d24; color: #ea868f; padding: 4px 10px; border-radius: 12px; font-weight: 600; font-size: 0.8rem; }
 </style>
+
 """, unsafe_allow_html=True)
 
 
@@ -450,12 +451,12 @@ if nav_selection == "ANALYTICS":
             neg_p = (neg_c / tot_lbls * 100) if tot_lbls > 0 else 0
 
             st.markdown(f"""
-            <div style="background-color: #ffffff; border: 1px solid #e1e8ed; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.03); height: 400px; display: flex; flex-direction: column; justify-content: center;">
-                <h4 style="color: #1e3c72; margin-top: 0;">Akumulasi Ringkasan Label Sentimen</h4>
-                <p style="color: #7f8c8d; font-size: 0.95rem;">Rincian total anotasi sentimen konsumen EV China pada 4 aspek utama (Infrastruktur, Ekonomi, Kualitas, Purnajual):</p>
-                <hr style="margin: 15px 0;">
+            <div style="background-color: #161b22; border: 1px solid #30363d; border-radius: 12px; padding: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); height: 400px; display: flex; flex-direction: column; justify-content: center;">
+                <h4 style="color: #58a6ff; margin-top: 0;">Akumulasi Ringkasan Label Sentimen</h4>
+                <p style="color: #8b949e; font-size: 0.95rem;">Rincian total anotasi sentimen konsumen EV China pada 4 aspek utama (Infrastruktur, Ekonomi, Kualitas, Purnajual):</p>
+                <hr style="margin: 15px 0; border-color: #30363d;">
                 <div style="font-size: 1.05rem; line-height: 2.2; font-weight: 600;">
-                    <div>📝 Total Anotasi Label: <span style="color: #2c3e50;">{tot_lbls:,}</span></div>
+                    <div>📝 Total Anotasi Label: <span style="color: #f0f6fc;">{tot_lbls:,}</span></div>
                     <div>🟢 Sentimen Positif: <span style="color: #2ecc71;">{pos_c:,} ({pos_p:.1f}%)</span></div>
                     <div>🟡 Sentimen Netral: <span style="color: #f1c40f;">{neu_c:,} ({neu_p:.1f}%)</span></div>
                     <div>🔴 Sentimen Negatif: <span style="color: #e74c3c;">{neg_c:,} ({neg_p:.1f}%)</span></div>
@@ -589,7 +590,8 @@ if nav_selection == "ANALYTICS":
                         <span class="{badge_class}">{sel_sentiment.upper()} — {sel_aspect}</span>
                         <span style="font-weight: 700; color: #e67e22;">👍 {like_num:,} Likes</span>
                     </div>
-                    <p style="font-size: 1.05rem; color: #2c3e50; margin: 8px 0;">"{comment_txt}"</p>
+                    <p style="font-size: 1.05rem; color: #f0f6fc; margin: 8px 0;">"{comment_txt}"</p>
+
                     <div style="font-size: 0.8rem; color: #95a5a6;">Video ID: <code>{vid_id}</code></div>
                 </div>
                 """, unsafe_allow_html=True)
